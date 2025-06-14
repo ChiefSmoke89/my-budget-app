@@ -727,9 +727,15 @@
         import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, query, serverTimestamp, runTransaction, writeBatch, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Configuration ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-budget-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const firebaseConfig = {
+  apiKey: "AIzaSyB3sotw7olYhMDeDx_ZW0SXkvUGZgdcSKI",
+  authDomain: "my-budget-app-3dd19.firebaseapp.com",
+  projectId: "my-budget-app-3dd19",
+  storageBucket: "my-budget-app-3dd19.firebasestorage.app",
+  messagingSenderId: "873429046182",
+  appId: "1:873429046182:web:bf16e29b2caa62402b3567",
+  measurementId: "G-51RCMY3BNN"
+};
 
         // --- Global State ---
         let app, auth, db, userId, accountsUnsubscribe, transactionsUnsubscribe, syncUnsubscribe, partnerDataUnsubscribe, savingsGoalsUnsubscribe, aiChatUnsubscribe, syncRequestUnsubscribe;
