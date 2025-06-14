@@ -1,0 +1,2137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blacksher Family Budget App</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter for a clean look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb; /* bg-gray-50 */
+            color: #1f2937; /* text-gray-800 */
+            transition-property: color, background-color;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+
+        /* Dark Mode Styles */
+        .dark body { background-color: #111827; color: #d1d5db; }
+        .dark .bg-white { background-color: #1f2937; }
+        .dark .bg-gray-50 { background-color: #374151; }
+        .dark .border-gray-300 { border-color: #4b5563; }
+        .dark .text-gray-900 { color: #f9fafb; }
+        .dark .text-gray-800 { color: #d1d5db; }
+        .dark .text-gray-700 { color: #d1d5db; }
+        .dark .text-gray-500 { color: #9ca3af; }
+        .dark .text-gray-400 { color: #9ca3af; }
+        .dark .bg-gray-100 { background-color: #374151; }
+        .dark .bg-gray-200 { background-color: #4b5563; }
+        .dark .hover\:bg-gray-100:hover { background-color: #374151; }
+        .dark .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -2px rgba(0,0,0,0.4); }
+        .dark .ring-black { --tw-ring-color: #fff; }
+        
+        /* Dark mode specific input styling for better visibility */
+        .dark input[type="text"],
+        .dark input[type="search"],
+        .dark input[type="number"],
+        .dark input[type="date"],
+        .dark select {
+            background-color: #111827; /* Near black - bg-gray-900 */
+            color: #60a5fa; /* Light Blue */
+        }
+        .dark ::-webkit-input-placeholder { color: #6b7280; }
+        .dark ::-moz-placeholder { color: #6b7280; }
+        .dark :-ms-input-placeholder { color: #6b7280; }
+        .dark ::-ms-input-placeholder { color: #6b7280; }
+        .dark ::placeholder { color: #6b7280; }
+
+        /* Report Toggle Dark Mode */
+        .report-toggle-label { color: #6b7280; }
+        .report-toggle-label[data-active="true"] { background-color: #fff; color: #1f2937; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); }
+        .dark .report-toggle-label { color: #d1d5db; }
+        .dark .report-toggle-label[data-active="true"] { background-color: #4b5563; color: #f9fafb; }
+        .dark #theme-dropdown a:hover { background-color: #374151; }
+        .dark #theme-dropdown { background-color: #1f2937; }
+        
+        /* Language-specific content display logic */
+        [lang="pt"] .lang-en, [lang="en"] .lang-pt { display: none; }
+        .transition-all { transition: all 0.3s ease-in-out; }
+        .modal-backdrop { background-color: rgba(0, 0, 0, 0.5); }
+
+        /* Custom toggle switch styling */
+        .toggle-label {
+            width: 120px; text-align: center; padding: 6px 0; cursor: pointer; border-radius: 9999px;
+            transition: all 0.2s ease-in-out; font-weight: 500;
+        }
+        input[type="radio"]:checked + .toggle-label-expense { background-color: #ef4444; color: white; }
+        input[type="radio"]:checked + .toggle-label-income { background-color: #22c55e; color: white; }
+        input[type="radio"]:checked + .toggle-label-personal { background-color: #3b82f6; color: white; }
+        input[type="radio"]:checked + .toggle-label-business { background-color: #a855f7; color: white; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Main Application Container -->
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+
+        <!-- Header Section -->
+        <header class="bg-white shadow-md rounded-xl p-6 mb-8">
+            <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                <!-- App Title -->
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        <span class="lang-en">Blacksher Family Budget App 🚀</span>
+                        <span class="lang-pt">App de Orçamento Família Blacksher 🚀</span>
+                    </h1>
+                </div>
+
+                <!-- Controls: User ID & Language Toggle -->
+                <div class="flex items-center space-x-4">
+                    <!-- AI Assistant Button -->
+                     <button id="ai-assistant-btn" class="text-gray-500 hover:text-purple-600 p-2 rounded-full hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-brain"></i>
+                    </button>
+                    <!-- User ID Display -->
+                    <div class="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-1 text-sm">
+                        <span class="font-medium">UID:</span>
+                        <span id="short-user-id">...</span>
+                        <button id="copy-user-id-btn" class="text-gray-500 hover:text-blue-600 transition-colors w-6 text-center" title="Copy User ID">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+
+                    <!-- Language Toggle Switch -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-medium">EN</span>
+                        <label for="language-toggle" class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="language-toggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                        <span class="text-sm font-medium">PT</span>
+                    </div>
+
+                    <!-- Theme Toggle Dropdown -->
+                    <div class="relative">
+                        <button id="theme-toggle-btn" class="text-gray-500 hover:text-blue-600 p-2 rounded-full hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-palette"></i>
+                        </button>
+                        <div id="theme-dropdown" class="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg z-20 hidden ring-1 ring-black ring-opacity-5">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-theme="light"><span class="lang-en">Light</span><span class="lang-pt">Claro</span></a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-theme="dark"><span class="lang-en">Dark</span><span class="lang-pt">Escuro</span></a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-theme="system"><span class="lang-en">System</span><span class="lang-pt">Sistema</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sync Request Banner -->
+        <div id="sync-request-banner" class="hidden bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg mb-8" role="alert">
+            <p class="font-bold"><span class="lang-en">Sync Request</span><span class="lang-pt">Pedido de Sincronização</span></p>
+            <p id="sync-request-text"></p>
+            <div class="mt-2">
+                <button id="accept-sync-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm"><span class="lang-en">Accept</span><span class="lang-pt">Aceitar</span></button>
+                <button id="decline-sync-btn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm"><span class="lang-en">Decline</span><span class="lang-pt">Recusar</span></button>
+            </div>
+        </div>
+
+
+        <!-- Main Content Grid -->
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <!-- Accounts Section -->
+            <section id="accounts-section" class="bg-white shadow-md rounded-xl p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">
+                        <span class="lang-en">Accounts 🏡</span>
+                        <span class="lang-pt">Contas 🏡</span>
+                    </h2>
+                    <div class="flex items-center gap-x-2">
+                        <button id="transfer-funds-btn" class="flex items-center space-x-2 text-blue-600 hover:text-blue-800 font-semibold transition-colors">
+                           <i class="fas fa-exchange-alt"></i>
+                           <span class="lang-en">Transfer</span><span class="lang-pt">Transferir</span>
+                        </button>
+                        <button id="manage-accounts-btn" class="flex items-center space-x-2 text-green-600 hover:text-green-800 font-semibold transition-colors">
+                            <i class="fas fa-plus-circle"></i>
+                            <span class="lang-en">Manage</span>
+                            <span class="lang-pt">Gerenciar</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="accounts-list" class="space-y-3 mb-4 min-h-[100px]">
+                    <!-- Account items will be dynamically inserted here -->
+                </div>
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center font-bold text-lg">
+                        <span>
+                            <span class="lang-en">Total Net Worth:</span>
+                            <span class="lang-pt">Patrimônio Líquido:</span>
+                        </span>
+                        <span id="total-net-worth">...</span>
+                    </div>
+                </div>
+                 <div class="mt-4 text-center">
+                    <button id="sync-partner-btn" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-all flex items-center justify-center space-x-2">
+                        <i class="fas fa-sync"></i>
+                        <span>
+                            <span class="lang-en">Sync with Partner</span>
+                            <span class="lang-pt">Sincronizar com Parceiro(a)</span>
+                        </span>
+                    </button>
+                    <button id="unsync-partner-btn" class="hidden w-full bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition-all flex items-center justify-center space-x-2">
+                        <i class="fas fa-unlink"></i>
+                        <span>
+                            <span class="lang-en">Un-sync from Partner</span>
+                            <span class="lang-pt">Dessincronizar do Parceiro(a)</span>
+                        </span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Transactions Section -->
+            <section id="transactions-section" class="bg-white shadow-md rounded-xl p-6 flex flex-col">
+                 <div class="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2">
+                    <h2 class="text-xl font-bold">
+                        <span class="lang-en">Transactions 💸</span>
+                        <span class="lang-pt">Transações 💸</span>
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="import-csv-btn" class="text-gray-500 hover:text-blue-600 p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center gap-2 text-sm"><i class="fas fa-upload"></i> <span class="lang-en">Import</span><span class="lang-pt">Importar</span></button>
+                        <button id="export-csv-btn" class="text-gray-500 hover:text-blue-600 p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center gap-2 text-sm"><i class="fas fa-download"></i> <span class="lang-en">Export</span><span class="lang-pt">Exportar</span></button>
+                    </div>
+                </div>
+                <!-- Search and Filter -->
+                 <div class="flex items-center gap-2 mb-4">
+                     <div class="relative w-full">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="search" id="transaction-search" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5" placeholder="Search transactions...">
+                    </div>
+                    <button id="filter-btn" title="Filter" class="bg-gray-200 text-gray-700 font-semibold py-2 px-3 rounded-lg hover:bg-gray-300 transition-all flex items-center gap-2 text-sm">
+                         <i class="fas fa-filter"></i> <span class="lang-en">Filter</span><span class="lang-pt">Filtrar</span>
+                    </button>
+                </div>
+                <!-- Pending Transactions Area -->
+                <div id="pending-transactions-container" class="hidden">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-lg text-amber-600"><span class="lang-en">Pending Review</span><span class="lang-pt">Pendente de Revisão</span></h3>
+                        <button id="bulk-edit-btn" class="hidden bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+                            <i class="fas fa-edit"></i>
+                            <span class="lang-en">Bulk Edit</span><span class="lang-pt">Editar em Massa</span>
+                        </button>
+                    </div>
+                    <div id="pending-transactions-list" class="space-y-2 mb-4 border-b pb-4">
+                        <!-- Pending items go here -->
+                    </div>
+                </div>
+                <!-- Approved Transactions List -->
+                <div id="transactions-list" class="space-y-3 min-h-[150px] flex-grow">
+                    <!-- Transaction items will be inserted here -->
+                </div>
+                 <!-- Add Transaction Button -->
+                 <div class="mt-auto pt-4">
+                    <button id="add-transaction-btn" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-plus"></i>
+                        <span class="lang-en">Add New Transaction</span><span class="lang-pt">Adicionar Nova Transação</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Reports Section -->
+        <section id="reports-section" class="mt-8 bg-white shadow-md rounded-xl p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
+                <h2 class="text-xl font-bold"><span class="lang-en">Reports 📊</span><span class="lang-pt">Relatórios 📊</span></h2>
+                <div class="flex items-center gap-2 flex-wrap justify-end">
+                    <!-- Date Filters -->
+                    <select id="report-month-select" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"></select>
+                    <select id="report-year-select" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"></select>
+                    
+                    <!-- View Toggle -->
+                    <div class="flex items-center space-x-2 bg-gray-100 p-1 rounded-full">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="report-toggle" class="sr-only" value="summary" checked>
+                            <span data-active="true" class="report-toggle-label px-3 py-1 rounded-full text-sm font-medium"><span class="lang-en">Summary</span><span class="lang-pt">Resumo</span></span>
+                        </label>
+                         <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="report-toggle" class="sr-only" value="detailed">
+                            <span class="report-toggle-label px-3 py-1 rounded-full text-sm font-medium"><span class="lang-en">Detailed</span><span class="lang-pt">Detalhado</span></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Summary View (Chart) -->
+            <div id="summary-report">
+                <div class="max-w-xs mx-auto">
+                    <canvas id="income-expense-chart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Detailed View (Breakdown) -->
+            <div id="detailed-report" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="flex flex-col space-y-4">
+                        <h3 class="font-bold text-lg text-red-600 text-center"><span class="lang-en">Expense Breakdown</span><span class="lang-pt">Detalhamento de Despesas</span></h3>
+                        <div class="max-w-xs mx-auto w-full"><canvas id="expense-breakdown-chart"></canvas></div>
+                        <ul id="expense-breakdown-list" class="space-y-2"></ul>
+                    </div>
+                     <div class="flex flex-col space-y-4">
+                        <h3 class="font-bold text-lg text-green-600 text-center"><span class="lang-en">Income Breakdown</span><span class="lang-pt">Detalhamento de Receitas</span></h3>
+                        <div class="max-w-xs mx-auto w-full"><canvas id="income-breakdown-chart"></canvas></div>
+                        <ul id="income-breakdown-list" class="space-y-2"></ul>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Savings Goals Section -->
+        <section id="savings-goals-section" class="mt-8 bg-white shadow-md rounded-xl p-6">
+             <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold"><span class="lang-en">Savings Goals 🏆</span><span class="lang-pt">Metas de Poupança 🏆</span></h2>
+                <button id="add-goal-btn" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-all flex items-center gap-2 text-sm"><i class="fas fa-plus"></i> <span class="lang-en">Add Goal</span><span class="lang-pt">Adicionar Meta</span></button>
+             </div>
+             <div id="savings-goals-list" class="space-y-4">
+                 <!-- Savings goals will be rendered here -->
+             </div>
+        </section>
+
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- AI Assistant Modal -->
+    <div id="ai-assistant-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl w-11/12 md:max-w-2xl mx-auto flex flex-col max-h-[90vh]">
+            <header class="p-4 border-b flex justify-between items-center">
+                 <h3 class="text-2xl font-bold"><span class="lang-en">AI Financial Assistant</span><span class="lang-pt">Assistente Financeiro de IA</span></h3>
+                 <button id="close-ai-modal-btn" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </header>
+            <div id="ai-chat-box" class="p-4 flex-grow overflow-y-auto space-y-4">
+                <!-- Chat messages will be appended here -->
+            </div>
+             <div id="ai-thinking-indicator" class="p-4 text-center hidden"><span class="lang-en">AI is thinking...</span><span class="lang-pt">IA está pensando...</span></div>
+            <footer class="p-4 border-t">
+                <form id="ai-prompt-form" class="flex items-center gap-2">
+                    <input type="text" id="ai-prompt-input" class="flex-grow border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Ask a financial question...">
+                    <button type="submit" class="p-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"><i class="fas fa-paper-plane"></i></button>
+                    <button type="button" id="clear-chat-history-btn" title="Clear Chat History" class="p-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300"><i class="fas fa-broom"></i></button>
+                </form>
+            </footer>
+        </div>
+    </div>
+
+
+    <!-- Manage Account Modal -->
+    <div id="account-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-11/12 md:max-w-md mx-auto">
+            <h3 class="text-2xl font-bold mb-6 text-center">
+                <span class="lang-en">Manage Account</span>
+                <span class="lang-pt">Gerenciar Conta</span>
+            </h3>
+            <form id="account-form">
+                <input type="hidden" id="account-id">
+                <div class="mb-4">
+                    <label for="account-name" class="block text-sm font-medium text-gray-700">
+                        <span class="lang-en">Account Name</span>
+                        <span class="lang-pt">Nome da Conta</span>
+                    </label>
+                    <input type="text" id="account-name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Conta Nubank">
+                </div>
+                <div class="mb-4">
+                    <label for="account-type" class="block text-sm font-medium text-gray-700">
+                        <span class="lang-en">Account Type</span>
+                        <span class="lang-pt">Tipo de Conta</span>
+                    </label>
+                    <select id="account-type" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="Checking">Checking / Corrente</option>
+                        <option value="Savings">Savings / Poupança</option>
+                        <option value="Credit Card">Credit Card / Cartão de Crédito</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label for="account-balance-brl" class="block text-sm font-medium text-gray-700">Balance (R$)</label>
+                    <input type="number" id="account-balance-brl" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="5000.00">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-account-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                        <span class="lang-en">Cancel</span>
+                        <span class="lang-pt">Cancelar</span>
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
+                        <span class="lang-en">Save Account</span>
+                        <span class="lang-pt">Salvar Conta</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Manage Savings Goal Modal -->
+    <div id="savings-goal-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-11/12 md:max-w-md mx-auto">
+            <h3 class="text-2xl font-bold mb-6 text-center"><span class="lang-en">Savings Goal</span><span class="lang-pt">Meta de Poupança</span></h3>
+            <form id="savings-goal-form" class="space-y-4">
+                <input type="hidden" id="savings-goal-id">
+                <div>
+                    <label for="savings-goal-name" class="block text-sm font-medium text-gray-700"><span class="lang-en">Goal Name</span><span class="lang-pt">Nome da Meta</span></label>
+                    <input type="text" id="savings-goal-name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="savings-goal-amount" class="block text-sm font-medium text-gray-700"><span class="lang-en">Target Amount (R$)</span><span class="lang-pt">Valor Alvo (R$)</span></label>
+                    <input type="number" id="savings-goal-amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex justify-end space-x-4 pt-4">
+                     <button type="button" id="cancel-savings-goal-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                        <span class="lang-en">Cancel</span><span class="lang-pt">Cancelar</span>
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                        <span class="lang-en">Save Goal</span><span class="lang-pt">Salvar Meta</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <!-- Transfer Funds Modal -->
+    <div id="transfer-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-11/12 md:max-w-md mx-auto">
+            <h3 class="text-2xl font-bold mb-6 text-center">
+                <span class="lang-en">Transfer Funds</span>
+                <span class="lang-pt">Transferir Fundos</span>
+            </h3>
+            <form id="transfer-form" class="space-y-4">
+                <div>
+                    <label for="transfer-from-account" class="block text-sm font-medium text-gray-700"><span class="lang-en">From Account</span><span class="lang-pt">Da Conta</span></label>
+                    <select id="transfer-from-account" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
+                </div>
+                <div>
+                    <label for="transfer-to-account" class="block text-sm font-medium text-gray-700"><span class="lang-en">To Account</span><span class="lang-pt">Para a Conta</span></label>
+                    <select id="transfer-to-account" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
+                </div>
+                <div>
+                    <label for="transfer-amount" class="block text-sm font-medium text-gray-700"><span class="lang-en">Amount (R$)</span><span class="lang-pt">Valor (R$)</span></label>
+                    <input type="number" id="transfer-amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="100.00">
+                </div>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" id="cancel-transfer-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                        <span class="lang-en">Cancel</span><span class="lang-pt">Cancelar</span>
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                        <span class="lang-en">Save Transfer</span><span class="lang-pt">Salvar Transferência</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Transaction Modal -->
+    <div id="transaction-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-11/12 md:max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+             <h3 class="text-2xl font-bold mb-6 text-center">
+                <span class="title-add"><span class="lang-en">Add Transaction</span><span class="lang-pt">Adicionar Transação</span></span>
+                <span class="title-edit hidden"><span class="lang-en">Edit Transaction</span><span class="lang-pt">Editar Transação</span></span>
+                 <span class="title-review hidden"><span class="lang-en">Review Transaction</span><span class="lang-pt">Revisar Transação</span></span>
+                 <span class="title-bulk-edit hidden"><span class="lang-en">Bulk Edit Transactions</span><span class="lang-pt">Editar Transações em Massa</span></span>
+            </h3>
+            <form id="transaction-form" class="space-y-4">
+                <input type="hidden" id="transaction-id">
+                <input type="hidden" id="pending-tx-ids">
+                <input type="hidden" id="original-tx-amount">
+                <input type="hidden" id="original-tx-account-id">
+                <!-- Transaction Type Toggle -->
+                 <div>
+                    <div class="flex bg-gray-200 rounded-full p-1">
+                        <input type="radio" name="transaction-type" id="type-expense" value="expense" class="hidden" checked>
+                        <label for="type-expense" class="toggle-label toggle-label-expense"><span class="lang-en">Expense</span><span class="lang-pt">Despesa</span></label>
+                        <input type="radio" name="transaction-type" id="type-income" value="income" class="hidden">
+                        <label for="type-income" class="toggle-label toggle-label-income"><span class="lang-en">Income</span><span class="lang-pt">Receita</span></label>
+                    </div>
+                </div>
+
+                <!-- Account Selection -->
+                <div>
+                    <label for="transaction-account" class="block text-sm font-medium text-gray-700">
+                        <span class="lang-en">Account</span><span class="lang-pt">Conta</span>
+                    </label>
+                     <select id="transaction-account" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+
+                <!-- Amount Input -->
+                <div id="amount-field-container">
+                    <label for="transaction-amount" class="block text-sm font-medium text-gray-700">
+                        <span class="lang-en">Amount (R$)</span>
+                        <span class="lang-pt">Valor (R$)</span>
+                    </label>
+                    <input type="number" id="transaction-amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="55.50">
+                </div>
+                
+                <!-- Description Input -->
+                <div id="description-field-container">
+                    <label for="transaction-description" class="block text-sm font-medium text-gray-700">
+                        <span class="lang-en">Description</span>
+                        <span class="lang-pt">Descrição</span>
+                    </label>
+                    <input type="text" id="transaction-description" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Pão de Açúcar">
+                </div>
+
+                <!-- Category & Date -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="transaction-category" class="block text-sm font-medium text-gray-700">
+                            <span class="lang-en">Category</span><span class="lang-pt">Categoria</span>
+                        </label>
+                        <select id="transaction-category" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option value="Groceries">🛒 Groceries / Supermercado</option>
+                            <option value="Restaurants">🍔 Restaurants / Restaurantes</option>
+                            <option value="Transport">🚗 Transport / Transporte</option>
+                            <option value="Housing">🏠 Housing / Moradia</option>
+                            <option value="Utilities">💡 Utilities / Contas Fixas</option>
+                            <option value="Health">❤️ Health / Saúde</option>
+                            <option value="Leisure">🎉 Leisure / Lazer</option>
+                            <option value="Shopping">🛍️ Shopping / Compras</option>
+                            <option value="Education">🎓 Education / Educação</option>
+                            <option value="Travel">✈️ Travel / Viagem</option>
+                            <option value="Subscriptions">🔄 Subscriptions / Assinaturas</option>
+                            <option value="Gifts">🎁 Gifts / Presentes</option>
+                            <option value="Salary">💰 Salary / Salário</option>
+                            <option value="Freelance">💼 Freelance / Serviço</option>
+                            <option value="Investment">📈 Investment / Investimento</option>
+                            <option value="Other">❓ Other / Outro</option>
+                        </select>
+                    </div>
+                    <div>
+                         <label for="transaction-date" class="block text-sm font-medium text-gray-700">Date</label>
+                        <input type="date" id="transaction-date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Classification Toggle -->
+                <div>
+                     <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <span class="lang-en">Classification</span><span class="lang-pt">Classificação</span>
+                    </label>
+                    <div class="flex bg-gray-200 rounded-full p-1">
+                        <input type="radio" name="transaction-classification" id="class-personal" value="personal" class="hidden" checked>
+                        <label for="class-personal" class="toggle-label toggle-label-personal"><span class="lang-en">Personal</span><span class="lang-pt">Pessoal</span></label>
+                        <input type="radio" name="transaction-classification" id="class-business" value="business" class="hidden">
+                        <label for="class-business" class="toggle-label toggle-label-business"><span class="lang-en">Business</span><span class="lang-pt">Negócios</span></label>
+                    </div>
+                </div>
+
+                 <div class="flex justify-end items-center space-x-4 pt-4">
+                    <button type="button" id="cancel-transaction-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                        <span class="lang-en">Cancel</span>
+                        <span class="lang-pt">Cancelar</span>
+                    </button>
+                    <button type="button" id="save-and-add-another-btn" class="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-plus"></i>
+                        <span><span class="lang-en">Save & Add</span><span class="lang-pt">Salvar & Add</span></span>
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                        <span class="lang-en">Save</span>
+                        <span class="lang-pt">Salvar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Import Options Modal -->
+    <div id="import-options-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-11/12 md:max-w-md mx-auto">
+             <h3 class="text-2xl font-bold mb-6 text-center"><span class="lang-en">Import Transactions</span><span class="lang-pt">Importar Transações</span></h3>
+             <form id="import-form" class="space-y-4">
+                 <div>
+                    <label for="import-account-select" class="block text-sm font-medium text-gray-700"><span class="lang-en">1. Import Into Account:</span><span class="lang-pt">1. Importar para a Conta:</span></label>
+                     <select id="import-account-select" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
+                 </div>
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700"><span class="lang-en">2. Choose CSV File:</span><span class="lang-pt">2. Escolha o Arquivo CSV:</span></label>
+                    <input type="file" id="import-file-input" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept=".csv">
+                 </div>
+                 <div class="flex justify-end items-center space-x-4 pt-4">
+                     <button type="button" id="cancel-import-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                        <span class="lang-en">Cancel</span><span class="lang-pt">Cancelar</span>
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                        <span class="lang-en">Process File</span><span class="lang-pt">Processar Arquivo</span>
+                    </button>
+                 </div>
+             </form>
+        </div>
+    </div>
+    
+    <!-- Filter Modal -->
+    <div id="filter-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-11/12 md:max-w-md mx-auto">
+             <h3 class="text-2xl font-bold mb-6 text-center"><span class="lang-en">Filter Transactions</span><span class="lang-pt">Filtrar Transações</span></h3>
+             <form id="filter-form" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="filter-category" class="block text-sm font-medium text-gray-700"><span class="lang-en">Category</span><span class="lang-pt">Categoria</span></label>
+                        <select id="filter-category" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
+                    </div>
+                     <div>
+                        <label for="filter-account" class="block text-sm font-medium text-gray-700"><span class="lang-en">Account</span><span class="lang-pt">Conta</span></label>
+                        <select id="filter-account" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></select>
+                    </div>
+                </div>
+                 <div>
+                    <label for="filter-type" class="block text-sm font-medium text-gray-700"><span class="lang-en">Type</span><span class="lang-pt">Tipo</span></label>
+                    <select id="filter-type" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="all">All / Todos</option>
+                        <option value="income">Income / Receita</option>
+                        <option value="expense">Expense / Despesa</option>
+                    </select>
+                </div>
+                 <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="filter-start-date" class="block text-sm font-medium text-gray-700">Start Date</label>
+                        <input type="date" id="filter-start-date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                         <label for="filter-end-date" class="block text-sm font-medium text-gray-700">End Date</label>
+                        <input type="date" id="filter-end-date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                 <div class="flex justify-between items-center space-x-4 pt-4">
+                     <button type="button" id="clear-filters-btn" class="px-4 py-2 text-blue-600 font-semibold rounded-lg hover:text-blue-800 transition-colors">
+                        <span class="lang-en">Clear Filters</span><span class="lang-pt">Limpar Filtros</span>
+                    </button>
+                    <div class="flex gap-x-2">
+                        <button type="button" id="cancel-filter-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                            <span class="lang-en">Cancel</span><span class="lang-pt">Cancelar</span>
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                            <span class="lang-en">Apply</span><span class="lang-pt">Aplicar</span>
+                        </button>
+                    </div>
+                 </div>
+             </form>
+        </div>
+    </div>
+    
+    <!-- Export Options Modal -->
+    <div id="export-options-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-11/12 md:max-w-md mx-auto">
+             <h3 class="text-2xl font-bold mb-6 text-center"><span class="lang-en">Export Transactions</span><span class="lang-pt">Exportar Transações</span></h3>
+             <form id="export-form" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="export-start-date" class="block text-sm font-medium text-gray-700">Start Date</label>
+                        <input type="date" id="export-start-date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                         <label for="export-end-date" class="block text-sm font-medium text-gray-700">End Date</label>
+                        <input type="date" id="export-end-date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                 <div class="flex justify-end items-center space-x-4 pt-4">
+                     <button type="button" id="cancel-export-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                        <span class="lang-en">Cancel</span><span class="lang-pt">Cancelar</span>
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                        <span class="lang-en">Export Now</span><span class="lang-pt">Exportar Agora</span>
+                    </button>
+                 </div>
+             </form>
+        </div>
+    </div>
+
+
+    <!-- Sync with Partner Modal -->
+    <div id="sync-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-11/12 md:max-w-md mx-auto">
+            <h3 class="text-2xl font-bold mb-4 text-center">
+                <span class="lang-en">Sync With Partner</span>
+                <span class="lang-pt">Sincronizar com Parceiro(a)</span>
+            </h3>
+            <p class="text-center text-gray-600 mb-6">
+                <span class="lang-en">Paste your partner's User ID below to link accounts.</span>
+                <span class="lang-pt">Cole o ID de usuário do seu parceiro(a) abaixo para vincular as contas.</span>
+            </p>
+            <form id="sync-form">
+                <div class="mb-6">
+                    <label for="partner-id" class="block text-sm font-medium text-gray-700">
+                        <span class="lang-en">Partner's User ID</span>
+                        <span class="lang-pt">ID de Usuário do Parceiro(a)</span>
+                    </label>
+                    <input type="text" id="partner-id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Paste full User ID here">
+                </div>
+                 <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-sync-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                        <span class="lang-en">Cancel</span>
+                        <span class="lang-pt">Cancelar</span>
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                        <span class="lang-en">Sync Now</span>
+                        <span class="lang-pt">Sincronizar Agora</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-confirmation-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-11/12 md:max-w-md mx-auto">
+             <h3 class="text-2xl font-bold mb-4 text-center"><span class="lang-en">Confirm Deletion</span><span class="lang-pt">Confirmar Exclusão</span></h3>
+             <p id="delete-confirmation-message" class="text-center text-gray-600 mb-6"></p>
+             <div class="flex justify-end items-center space-x-4">
+                <button type="button" id="cancel-delete-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                    <span class="lang-en">Cancel</span><span class="lang-pt">Cancelar</span>
+                </button>
+                <button type="button" id="confirm-delete-btn" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors">
+                    <span class="lang-en">Delete</span><span class="lang-pt">Excluir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom Message/Alert Modal -->
+    <div id="message-modal" class="fixed top-5 right-5 z-50 hidden">
+         <div id="message-content" class="p-4 rounded-lg shadow-lg text-white font-semibold">
+            <!-- Message will be inserted here -->
+        </div>
+    </div>
+
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, query, serverTimestamp, runTransaction, writeBatch, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Configuration ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-budget-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // --- Global State ---
+        let app, auth, db, userId, accountsUnsubscribe, transactionsUnsubscribe, syncUnsubscribe, partnerDataUnsubscribe, savingsGoalsUnsubscribe, aiChatUnsubscribe, syncRequestUnsubscribe;
+        let myAccounts = [], partnerAccounts = [];
+        let myTransactions = [], partnerTransactions = [];
+        let savingsGoals = [];
+        let aiChatHistory = [];
+        let pendingTransactions = [];
+        let isSynced = false, partnerId = null;
+        let currentLang = 'en';
+        let summaryChart = null, expenseChart = null, incomeChart = null;
+        let transactionFilters = {};
+        
+        const categoryEmojis = {
+            'Groceries': '🛒', 'Restaurants': '🍔', 'Transport': '🚗', 'Housing': '🏠', 'Utilities': '💡', 'Health': '❤️',
+            'Leisure': '🎉', 'Shopping': '🛍️', 'Education': '🎓', 'Travel': '✈️', 'Subscriptions': '🔄', 'Gifts': '🎁',
+            'Salary': '💰', 'Freelance': '💼', 'Investment': '📈', 'Other': '❓'
+        };
+        
+        const chartColorPalette = [
+            '#ef4444', '#3b82f6', '#22c55e', '#a855f7', '#f97316', '#eab308', 
+            '#14b8a6', '#ec4899', '#6366f1', '#84cc16', '#0ea5e9', '#d946ef'
+        ];
+
+        // --- DOM Elements ---
+        const shortUserIdEl = document.getElementById('short-user-id');
+        const copyUserIdBtn = document.getElementById('copy-user-id-btn');
+        const langToggle = document.getElementById('language-toggle');
+        const htmlEl = document.documentElement;
+
+        const accountsListEl = document.getElementById('accounts-list');
+        const netWorthEl = document.getElementById('total-net-worth');
+        const transactionsListEl = document.getElementById('transactions-list');
+        const pendingTransactionsListEl = document.getElementById('pending-transactions-list');
+        const pendingTransactionsContainer = document.getElementById('pending-transactions-container');
+        const transactionSearchInput = document.getElementById('transaction-search');
+        
+        // Modals
+        const accountModal = document.getElementById('account-modal');
+        const transactionModal = document.getElementById('transaction-modal');
+        const transferModal = document.getElementById('transfer-modal');
+        const savingsGoalModal = document.getElementById('savings-goal-modal');
+        const importOptionsModal = document.getElementById('import-options-modal');
+        const exportOptionsModal = document.getElementById('export-options-modal');
+        const filterModal = document.getElementById('filter-modal');
+        const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
+        const aiAssistantModal = document.getElementById('ai-assistant-modal');
+        const syncModal = document.getElementById('sync-modal');
+        const messageModal = document.getElementById('message-modal');
+        const messageContent = document.getElementById('message-content');
+        
+        // Forms & Buttons
+        const accountForm = document.getElementById('account-form');
+        const transactionForm = document.getElementById('transaction-form');
+        const transferForm = document.getElementById('transfer-form');
+        const savingsGoalForm = document.getElementById('savings-goal-form');
+        const importForm = document.getElementById('import-form');
+        const exportForm = document.getElementById('export-form');
+        const filterForm = document.getElementById('filter-form');
+        const aiPromptForm = document.getElementById('ai-prompt-form');
+        const syncForm = document.getElementById('sync-form');
+        const saveAndAddAnotherBtn = document.getElementById('save-and-add-another-btn');
+        const importCsvBtn = document.getElementById('import-csv-btn');
+        const exportCsvBtn = document.getElementById('export-csv-btn');
+        const bulkEditBtn = document.getElementById('bulk-edit-btn');
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        const themeDropdown = document.getElementById('theme-dropdown');
+        const transferFundsBtn = document.getElementById('transfer-funds-btn');
+        const filterBtn = document.getElementById('filter-btn');
+        const clearFiltersBtn = document.getElementById('clear-filters-btn');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const syncPartnerBtn = document.getElementById('sync-partner-btn');
+        const unsyncPartnerBtn = document.getElementById('unsync-partner-btn');
+        const aiAssistantBtn = document.getElementById('ai-assistant-btn');
+        const clearChatHistoryBtn = document.getElementById('clear-chat-history-btn');
+        const addGoalBtn = document.getElementById('add-goal-btn');
+        const syncRequestBanner = document.getElementById('sync-request-banner');
+
+        // Reports & Goals
+        const summaryReportEl = document.getElementById('summary-report');
+        const detailedReportEl = document.getElementById('detailed-report');
+        const reportMonthSelect = document.getElementById('report-month-select');
+        const reportYearSelect = document.getElementById('report-year-select');
+        const savingsGoalsSection = document.getElementById('savings-goals-section');
+        const savingsGoalsList = document.getElementById('savings-goals-list');
+        const aiChatBox = document.getElementById('ai-chat-box');
+        const aiThinkingIndicator = document.getElementById('ai-thinking-indicator');
+
+        // --- Initialization ---
+        function startApp() {
+            if (Object.keys(firebaseConfig).length === 0) { console.error("Firebase config is missing."); showMessage("App could not be loaded. Config missing.", 'error'); return; }
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            setupAuthListener();
+            setupEventListeners();
+            resetTransactionForm();
+            populateDateFilters();
+            loadTheme();
+        }
+
+        // --- Authentication ---
+        function setupAuthListener() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    shortUserIdEl.textContent = userId.substring(0, 6);
+                    loadData();
+                } else {
+                    try {
+                        if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
+                        else await signInAnonymously(auth);
+                    } catch (error) { console.error("Error signing in:", error); showMessage("Authentication failed.", 'error'); }
+                }
+            });
+        }
+
+        // --- Data Loading & Rendering ---
+        function loadData() {
+            if (!userId) return;
+            // Unsubscribe from all listeners to prevent duplicates
+            [accountsUnsubscribe, transactionsUnsubscribe, syncUnsubscribe, savingsGoalsUnsubscribe, aiChatUnsubscribe, syncRequestUnsubscribe].forEach(unsub => {
+                if(unsub) unsub();
+            });
+
+            // Load user's own data
+            const accountsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/accounts`));
+            accountsUnsubscribe = onSnapshot(accountsQuery, (snapshot) => {
+                myAccounts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), owner: userId }));
+                renderAll();
+            });
+
+            const transactionsQuery = query(collection(db, `artifacts/${appId}/users/${userId}/transactions`));
+            transactionsUnsubscribe = onSnapshot(transactionsQuery, (snapshot) => {
+                myTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), owner: userId }));
+                renderAll();
+            });
+            
+            // Listen for incoming sync requests
+            const syncRequestQuery = query(collection(db, `artifacts/${appId}/public/data/syncRequests`), where("to", "==", userId));
+            syncRequestUnsubscribe = onSnapshot(syncRequestQuery, (snapshot) => {
+                 if (!snapshot.empty) {
+                    const request = snapshot.docs[0].data();
+                    const requestId = snapshot.docs[0].id;
+                    document.getElementById('sync-request-text').textContent = `User ${request.from.substring(0,6)} wants to sync accounts.`;
+                    syncRequestBanner.classList.remove('hidden');
+                    document.getElementById('accept-sync-btn').onclick = () => acceptSyncRequest(request.from, requestId);
+                    document.getElementById('decline-sync-btn').onclick = () => declineSyncRequest(requestId);
+                 } else {
+                    syncRequestBanner.classList.add('hidden');
+                 }
+            });
+
+            // Check for and load partner data
+            const syncsRef = collection(db, `artifacts/${appId}/public/data/syncs`);
+            const q = query(syncsRef);
+            syncUnsubscribe = onSnapshot(q, (snapshot) => {
+                let syncFound = false;
+                snapshot.forEach(doc => {
+                    const users = doc.data().users;
+                    if (users.includes(userId)) {
+                        partnerId = users.find(id => id !== userId);
+                        isSynced = true;
+                        syncFound = true;
+                        loadPartnerData(partnerId);
+                        loadSharedData();
+                    }
+                });
+                if(!syncFound) {
+                    isSynced = false;
+                    partnerId = null;
+                    if(partnerDataUnsubscribe) partnerDataUnsubscribe();
+                    partnerAccounts = [];
+                    partnerTransactions = [];
+                    loadSharedData(); // load own goals/chat
+                    renderAll();
+                }
+                 syncPartnerBtn.classList.toggle('hidden', isSynced);
+                 unsyncPartnerBtn.classList.toggle('hidden', !isSynced);
+            });
+        }
+        
+        function loadSharedData() {
+            if (savingsGoalsUnsubscribe) savingsGoalsUnsubscribe();
+            if (aiChatUnsubscribe) aiChatUnsubscribe();
+            
+            const docId = isSynced ? [userId, partnerId].sort().join('_') : userId;
+            const basePath = isSynced ? `artifacts/${appId}/public/data` : `artifacts/${appId}/users/${userId}`;
+
+            // Load Savings Goals
+            const goalsPath = isSynced ? `savingsGoals/${docId}` : `savingsGoals`;
+            const goalsQuery = query(collection(db, `${basePath}/${goalsPath}`));
+            savingsGoalsUnsubscribe = onSnapshot(goalsQuery, (snapshot) => {
+                savingsGoals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderSavingsGoals();
+            });
+            
+            // Load Chat History
+            const chatPath = isSynced 
+                ? `aiChatHistory/${docId}` 
+                : `aiChatHistory/chat`;
+            const chatRef = doc(db, `${basePath}/${chatPath}`);
+            aiChatUnsubscribe = onSnapshot(chatRef, (doc) => {
+                aiChatHistory = doc.exists() ? doc.data().messages : [];
+                renderAIChat();
+            });
+        }
+        
+        function loadPartnerData(pId) {
+            if(partnerDataUnsubscribe) partnerDataUnsubscribe(); // Unsubscribe from old partner if any
+            
+            const partnerAccountsQuery = query(collection(db, `artifacts/${appId}/users/${pId}/accounts`));
+            const partnerTransactionsQuery = query(collection(db, `artifacts/${appId}/users/${pId}/transactions`));
+
+            const unsubAccounts = onSnapshot(partnerAccountsQuery, snapshot => {
+                partnerAccounts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), owner: pId }));
+                renderAll();
+            });
+            
+            const unsubTransactions = onSnapshot(partnerTransactionsQuery, snapshot => {
+                partnerTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), owner: pId }));
+                renderAll();
+            });
+
+            partnerDataUnsubscribe = () => {
+                unsubAccounts();
+                unsubTransactions();
+            }
+        }
+        
+        function renderAll() {
+            const allAccounts = [...myAccounts, ...partnerAccounts];
+            const allTransactions = [...myTransactions, ...partnerTransactions];
+
+            renderAccounts(allAccounts);
+            populateAccountDropdowns();
+            renderTransactions(allTransactions);
+            populateYearFilter(allTransactions);
+            renderReports(allTransactions);
+            renderSavingsGoals();
+        }
+
+        function populateAccountDropdowns() {
+            const allAccountsData = [...myAccounts, ...partnerAccounts];
+            const selects = [
+                document.getElementById('transaction-account'),
+                document.getElementById('import-account-select'),
+                document.getElementById('transfer-from-account'),
+                document.getElementById('transfer-to-account'),
+                document.getElementById('filter-account')
+            ];
+
+            const categorySelect = document.getElementById('filter-category');
+            categorySelect.innerHTML = '<option value="all">All Categories</option>';
+            Object.keys(categoryEmojis).forEach(cat => {
+                 categorySelect.innerHTML += `<option value="${cat}">${categoryEmojis[cat]} ${cat}</option>`;
+            });
+
+            selects.forEach(select => {
+                const currentVal = select.value;
+                if(select.id === 'filter-account') {
+                     select.innerHTML = `<option value="all">All Accounts</option>`;
+                } else {
+                     select.innerHTML = `<option value="">Select Account</option>`;
+                }
+
+                if (myAccounts.length > 0) {
+                     select.innerHTML += `<optgroup label="Your Accounts">` + myAccounts.map(acc => `<option value="${acc.id}">${acc.name}</option>`).join('') + `</optgroup>`;
+                }
+                 if (isSynced && partnerAccounts.length > 0) {
+                     const partnerOptGroupLabel = select.id === 'transfer-to-account' || select.id === 'filter-account' ? "Partner's Accounts" : "Partner's Accounts (View Only)";
+                     select.innerHTML += `<optgroup label="${partnerOptGroupLabel}">` + partnerAccounts.map(acc => `<option value="${acc.id}" ${select.id !== 'transfer-to-account' && select.id !== 'filter-account' ? 'disabled' : ''}>${acc.name}</option>`).join('') + `</optgroup>`;
+                 }
+                 select.value = currentVal;
+            });
+            updateLanguageDisplay();
+        }
+
+        function renderAccounts(allAccountsData = []) {
+            accountsListEl.innerHTML = '';
+            let totalNetWorth = 0;
+            if (allAccountsData.length === 0) {
+                 accountsListEl.innerHTML = `<p class="text-gray-500 text-center"><span class="lang-en">No accounts yet. Add one!</span><span class="lang-pt">Nenhuma conta ainda. Adicione uma!</span></p>`;
+            } else {
+                 allAccountsData.forEach(acc => {
+                    const isCreditCard = acc.type === 'Credit Card';
+                    const balanceBrl = parseFloat(acc.balanceBrl) || 0;
+                    totalNetWorth += isCreditCard ? -balanceBrl : balanceBrl;
+                    const balanceColor = isCreditCard ? 'text-red-500' : 'text-green-600';
+                    const ownerIcon = acc.owner === userId 
+                        ? `<i class="fas fa-user text-blue-500" title="Your Account"></i>`
+                        : `<i class="fas fa-user-friends text-pink-500" title="Partner's Account"></i>`;
+
+                    const accountEl = document.createElement('div');
+                    accountEl.className = 'bg-gray-50 rounded-lg p-3 flex justify-between items-center';
+                    accountEl.innerHTML = `<div class="flex items-center gap-3"> ${ownerIcon} <div><p class="font-semibold">${acc.name}</p><p class="text-sm text-gray-500">${acc.type}</p></div><button class="edit-account-btn text-gray-400 hover:text-blue-600" data-id="${acc.id}" data-owner="${acc.owner}"><i class="fas fa-pencil-alt fa-xs"></i></button></div><div class="text-right"><p class="font-semibold ${balanceColor}">R$${balanceBrl.toFixed(2)}</p></div>`;
+                    accountsListEl.appendChild(accountEl);
+                });
+            }
+            netWorthEl.textContent = `R$${totalNetWorth.toFixed(2)}`;
+            netWorthEl.className = `font-bold ${totalNetWorth >= 0 ? 'text-green-600' : 'text-red-500'}`;
+            updateLanguageDisplay();
+        }
+        
+        function renderPendingTransactions() {
+            pendingTransactionsContainer.classList.toggle('hidden', pendingTransactions.length === 0);
+            pendingTransactionsListEl.innerHTML = '';
+            pendingTransactions.forEach(tx => {
+                const amount = parseFloat(tx.amount) || 0;
+                const pendingEl = document.createElement('div');
+                pendingEl.className = 'bg-amber-50 rounded-lg p-3 flex justify-between items-center';
+                pendingEl.innerHTML = `<div class="flex items-center gap-3"><input type="checkbox" class="pending-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" data-id="${tx.tempId}"><div class="flex-grow"><div><p class="font-semibold">${tx.description || 'No description'}</p><p class="text-sm text-gray-500">R$ ${amount.toFixed(2)} &bull; ${tx.date || 'No date'}</p></div></div></div><button class="review-pending-btn bg-amber-500 text-white px-3 py-1 rounded-full text-sm font-semibold" data-id="${tx.tempId}"><span class="lang-en">Review</span><span class="lang-pt">Revisar</span></button>`;
+                pendingTransactionsListEl.appendChild(pendingEl);
+            });
+            updateLanguageDisplay();
+        }
+
+        function renderTransactions(allTransactionsData = []) {
+            const searchTerm = transactionSearchInput.value.toLowerCase();
+            const filtered = allTransactionsData.filter(tx => {
+                const searchMatch = tx.description.toLowerCase().includes(searchTerm);
+                const categoryMatch = !transactionFilters.category || transactionFilters.category === 'all' || tx.category === transactionFilters.category;
+                const accountMatch = !transactionFilters.account || transactionFilters.account === 'all' || tx.accountId === transactionFilters.account;
+                const typeMatch = !transactionFilters.type || transactionFilters.type === 'all' || tx.type === transactionFilters.type;
+                const startDateMatch = !transactionFilters.startDate || tx.date >= transactionFilters.startDate;
+                const endDateMatch = !transactionFilters.endDate || tx.date <= transactionFilters.endDate;
+                return searchMatch && categoryMatch && accountMatch && typeMatch && startDateMatch && endDateMatch;
+            });
+
+            transactionsListEl.innerHTML = '';
+             if (filtered.length === 0) {
+                 transactionsListEl.innerHTML = `<p class="text-gray-500 text-center pt-8"><span class="lang-en">No transactions found.</span><span class="lang-pt">Nenhuma transação encontrada.</span></p>`;
+            } else {
+                filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+                filtered.forEach(tx => {
+                    const allAccounts = [...myAccounts, ...partnerAccounts];
+                    const account = allAccounts.find(a => a.id === tx.accountId);
+                    const amount = parseFloat(tx.amount) || 0;
+                    const isIncome = tx.type === 'income';
+                    const amountColor = isIncome ? 'text-green-600' : 'text-red-500';
+                    const classIcon = tx.classification === 'business' ? `<i class="fas fa-briefcase text-purple-500" title="Business"></i>` : `<i class="fas fa-user text-blue-500" title="Personal"></i>`;
+                    const categoryEmoji = categoryEmojis[tx.category] || '❓';
+                    const ownerIcon = tx.owner === userId ? '' : `<i class="fas fa-user-friends text-pink-500 text-xs" title="Partner's Transaction"></i>`;
+                    const transactionEl = document.createElement('div');
+                    transactionEl.className = 'bg-gray-50 rounded-lg p-3 flex flex-col space-y-2';
+                    transactionEl.innerHTML = `<div class="flex justify-between items-start"><div><p class="font-semibold pr-2">${tx.description}</p><p class="text-xs text-gray-400 flex items-center gap-1">${ownerIcon} <i class="fas fa-university fa-xs"></i> ${account ? account.name : 'N/A'}</p></div><div class="flex items-center gap-x-3"><p class="font-bold whitespace-nowrap ${amountColor}">R$${Math.abs(amount).toFixed(2)}</p><button class="edit-transaction-btn text-gray-400 hover:text-blue-600" data-id="${tx.id}" data-owner="${tx.owner}"><i class="fas fa-pencil-alt fa-xs"></i></button><button class="delete-transaction-btn text-gray-400 hover:text-red-600" data-id="${tx.id}" data-owner="${tx.owner}"><i class="fas fa-trash-alt fa-xs"></i></button></div></div><div class="flex justify-between items-center text-xs text-gray-500"><div class="flex items-center gap-x-2">${classIcon}<span class="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">${categoryEmoji} ${tx.category}</span></div><span>${tx.date}</span></div>`;
+                    transactionsListEl.appendChild(transactionEl);
+                });
+            }
+            updateLanguageDisplay();
+        }
+        
+        function renderSavingsGoals() {
+            if (savingsGoalsSection) {
+                savingsGoalsSection.classList.toggle('hidden', savingsGoals.length === 0 && !document.getElementById('add-goal-btn'));
+                savingsGoalsList.innerHTML = '';
+            
+                const netWorth = [...myAccounts, ...partnerAccounts]
+                    .reduce((sum, acc) => sum + (acc.type === 'Credit Card' ? -acc.balanceBrl : acc.balanceBrl), 0);
+
+                savingsGoals.forEach(goal => {
+                    const progress = Math.max(0, Math.min(100, (netWorth / goal.targetAmount) * 100));
+                    const goalEl = document.createElement('div');
+                    goalEl.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <div class="flex items-center gap-x-3">
+                                <span class="font-semibold">${goal.name}</span>
+                                 <div class="flex items-center gap-x-2 text-gray-400">
+                                    <button class="ai-goal-btn hover:text-purple-500" data-goal-id="${goal.id}"><i class="fas fa-brain fa-xs"></i></button>
+                                    <button class="edit-goal-btn hover:text-blue-500" data-goal-id="${goal.id}"><i class="fas fa-pencil-alt fa-xs"></i></button>
+                                    <button class="delete-goal-btn hover:text-red-500" data-goal-id="${goal.id}"><i class="fas fa-trash-alt fa-xs"></i></button>
+                                </div>
+                            </div>
+                            <span class="text-sm text-gray-500">R$ ${netWorth.toFixed(2)} / R$ ${goal.targetAmount.toFixed(2)}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700">
+                            <div class="bg-green-500 h-4 rounded-full" style="width: ${progress}%"></div>
+                        </div>
+                    `;
+                    savingsGoalsList.appendChild(goalEl);
+                });
+            }
+        }
+
+
+        // --- Event Handlers & Logic ---
+        function setupEventListeners() {
+            langToggle.addEventListener('change', () => { currentLang = langToggle.checked ? 'pt' : 'en'; htmlEl.lang = currentLang; populateDateFilters(); });
+            copyUserIdBtn.addEventListener('click', () => {
+                if (!userId) return;
+                if (copyToClipboard(userId)) {
+                    showMessage('User ID copied!', 'success');
+                    const originalIconHTML = copyUserIdBtn.innerHTML;
+                    copyUserIdBtn.innerHTML = `<i class="fas fa-check text-green-500"></i>`;
+                    setTimeout(() => { copyUserIdBtn.innerHTML = originalIconHTML; }, 2000);
+                } else { showMessage('Failed to copy ID.', 'error'); }
+            });
+            
+            importCsvBtn.addEventListener('click', () => openModal(importOptionsModal));
+            exportCsvBtn.addEventListener('click', () => openModal(exportOptionsModal));
+            filterBtn.addEventListener('click', () => openModal(filterModal));
+            if(bulkEditBtn) bulkEditBtn.addEventListener('click', populateFormForBulkEdit);
+            transactionSearchInput.addEventListener('input', () => renderTransactions([...myTransactions, ...partnerTransactions]));
+            document.getElementById('transaction-description').addEventListener('blur', getCategoryFromAI);
+            
+            document.getElementById('manage-accounts-btn').addEventListener('click', () => { resetAccountForm(); openModal(accountModal); });
+            addGoalBtn.addEventListener('click', () => {
+                if (savingsGoalForm) savingsGoalForm.reset();
+                if (document.getElementById('savings-goal-id')) document.getElementById('savings-goal-id').value = '';
+                if(savingsGoalModal) openModal(savingsGoalModal);
+            });
+            transferFundsBtn.addEventListener('click', () => openModal(transferModal));
+            aiAssistantBtn.addEventListener('click', () => openModal(aiAssistantModal));
+            document.getElementById('add-transaction-btn').addEventListener('click', () => { resetTransactionForm(); openModal(transactionModal); });
+            syncPartnerBtn.addEventListener('click', () => openModal(syncModal));
+            unsyncPartnerBtn.addEventListener('click', handleUnsync);
+            syncForm.addEventListener('submit', handleSyncPartner);
+
+            document.getElementById('cancel-account-btn').addEventListener('click', () => closeModal(accountModal));
+            document.getElementById('cancel-transfer-btn').addEventListener('click', () => closeModal(transferModal));
+            document.getElementById('cancel-savings-goal-btn').addEventListener('click', () => closeModal(savingsGoalModal));
+            document.getElementById('cancel-transaction-btn').addEventListener('click', () => { closeModal(transactionModal); resetTransactionForm(); });
+            document.getElementById('cancel-import-btn').addEventListener('click', () => closeModal(importOptionsModal));
+            document.getElementById('cancel-export-btn').addEventListener('click', () => closeModal(exportOptionsModal));
+            document.getElementById('cancel-filter-btn').addEventListener('click', () => closeModal(filterModal));
+            document.getElementById('cancel-delete-btn').addEventListener('click', () => closeModal(deleteConfirmationModal));
+            document.getElementById('close-ai-modal-btn').addEventListener('click', () => closeModal(aiAssistantModal));
+            confirmDeleteBtn.addEventListener('click', handleDelete);
+            clearChatHistoryBtn.addEventListener('click', clearAIChatHistory);
+            document.getElementById('cancel-sync-btn').addEventListener('click', () => closeModal(syncModal));
+            
+            clearFiltersBtn.addEventListener('click', () => {
+                transactionFilters = {};
+                filterForm.reset();
+                renderTransactions([...myTransactions, ...partnerTransactions]);
+            });
+            
+            accountForm.addEventListener('submit', handleSaveAccount);
+            transferForm.addEventListener('submit', handleSaveTransfer);
+            if(savingsGoalForm) savingsGoalForm.addEventListener('submit', handleSaveSavingsGoal);
+            importForm.addEventListener('submit', handleImport);
+            exportForm.addEventListener('submit', handleExport);
+            filterForm.addEventListener('submit', handleFilter);
+            if(aiPromptForm) aiPromptForm.addEventListener('submit', handleAIPrompt);
+            transactionForm.addEventListener('submit', (e) => { e.preventDefault(); saveTransaction(true); });
+            saveAndAddAnotherBtn.addEventListener('click', () => saveTransaction(false));
+            
+            accountsListEl.addEventListener('click', (e) => { const editBtn = e.target.closest('.edit-account-btn'); if (editBtn) populateAccountFormForEdit(editBtn.dataset.id, editBtn.dataset.owner); });
+            transactionsListEl.addEventListener('click', (e) => { 
+                const editBtn = e.target.closest('.edit-transaction-btn');
+                const deleteBtn = e.target.closest('.delete-transaction-btn');
+                if (editBtn) populateTransactionFormForEdit(editBtn.dataset.id, editBtn.dataset.owner);
+                if (deleteBtn) confirmDelete(deleteBtn.dataset.id, 'transaction', deleteBtn.dataset.owner);
+            });
+            if(savingsGoalsList) savingsGoalsList.addEventListener('click', (e) => {
+                 const editBtn = e.target.closest('.edit-goal-btn');
+                 const deleteBtn = e.target.closest('.delete-goal-btn');
+                 const aiBtn = e.target.closest('.ai-goal-btn');
+                 if(editBtn) populateGoalFormForEdit(editBtn.dataset.goalId);
+                 if(deleteBtn) confirmDelete(deleteBtn.dataset.goalId, 'goal');
+                 if(aiBtn) openAIAssistantForGoal(aiBtn.dataset.goalId);
+            });
+            if(pendingTransactionsListEl) pendingTransactionsListEl.addEventListener('click', (e) => { 
+                const reviewBtn = e.target.closest('.review-pending-btn');
+                const checkbox = e.target.closest('.pending-checkbox');
+                if (reviewBtn) populateFormForPending(reviewBtn.dataset.id);
+                if (checkbox) toggleBulkEditButton();
+            });
+            
+            reportMonthSelect.addEventListener('change', () => renderReports([...myTransactions, ...partnerTransactions]));
+            reportYearSelect.addEventListener('change', () => renderReports([...myTransactions, ...partnerTransactions]));
+
+            document.querySelectorAll('input[name="report-toggle"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const isSummary = e.target.value === 'summary';
+                    summaryReportEl.classList.toggle('hidden', !isSummary);
+                    detailedReportEl.classList.toggle('hidden', isSummary);
+                    document.querySelectorAll('.report-toggle-label').forEach(label => label.removeAttribute('data-active'));
+                    e.target.nextElementSibling.setAttribute('data-active', 'true');
+                });
+            });
+            
+            themeToggleBtn.addEventListener('click', () => themeDropdown.classList.toggle('hidden'));
+            document.addEventListener('click', (e) => {
+                if (!themeToggleBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+                    themeDropdown.classList.add('hidden');
+                }
+            });
+            themeDropdown.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if(link) {
+                    e.preventDefault();
+                    applyTheme(link.dataset.theme);
+                    themeDropdown.classList.add('hidden');
+                }
+            });
+            
+            if(aiChatBox) aiChatBox.addEventListener('click', (e) => {
+                 if (e.target.matches('.make-action-plan-btn')) {
+                    const planData = JSON.parse(e.target.dataset.plan);
+                    handleMakeActionPlan(planData);
+                }
+                if (e.target.matches('.update-action-plan-btn')) {
+                    const planData = JSON.parse(e.target.dataset.plan);
+                    handleMakeActionPlan(planData, planData.id);
+                }
+            });
+        }
+        
+        function populateAccountFormForEdit(id, ownerId) {
+            if (ownerId !== userId) {
+                showMessage("You can only edit your own accounts.", 'error');
+                return;
+            }
+            const acc = myAccounts.find(a => a.id === id);
+            if (!acc) return;
+            resetAccountForm();
+            document.getElementById('account-id').value = acc.id;
+            document.getElementById('account-name').value = acc.name;
+            document.getElementById('account-type').value = acc.type;
+            document.getElementById('account-balance-brl').value = acc.balanceBrl;
+            openModal(accountModal);
+        }
+
+        function populateTransactionFormForEdit(id, ownerId) {
+            if (ownerId !== userId) {
+                showMessage("You can only edit your own transactions.", 'error');
+                return;
+            }
+            const tx = myTransactions.find(t => t.id === id);
+            if (!tx) return;
+            resetTransactionForm();
+            setModalTitle('edit');
+            document.getElementById('transaction-id').value = tx.id;
+            document.getElementById('original-tx-amount').value = tx.amount;
+            document.getElementById('original-tx-account-id').value = tx.accountId;
+            fillTransactionForm(tx);
+            openModal(transactionModal);
+        }
+        
+        function populateGoalFormForEdit(id) {
+            const goal = savingsGoals.find(g => g.id === id);
+            if (!goal) return;
+            document.getElementById('savings-goal-id').value = goal.id;
+            document.getElementById('savings-goal-name').value = goal.name;
+            document.getElementById('savings-goal-amount').value = goal.targetAmount;
+            openModal(savingsGoalModal);
+        }
+
+        function populateFormForPending(tempId) {
+            const tx = pendingTransactions.find(t => t.tempId === tempId);
+            if (!tx) return;
+            resetTransactionForm();
+            setModalTitle('review');
+            document.getElementById('pending-tx-ids').value = JSON.stringify([tx.tempId]);
+            fillTransactionForm(tx);
+            openModal(transactionModal);
+        }
+        
+        function populateFormForBulkEdit() {
+            const selectedIds = getSelectedPendingIds();
+            if (selectedIds.length === 0) return;
+            resetTransactionForm();
+            setModalTitle('bulk-edit');
+            document.getElementById('pending-tx-ids').value = JSON.stringify(selectedIds);
+            document.getElementById('amount-field-container').classList.add('hidden');
+            document.getElementById('description-field-container').classList.add('hidden');
+            openModal(transactionModal);
+        }
+
+        function fillTransactionForm(txData) {
+            document.getElementById('transaction-account').value = txData.accountId || "";
+            document.getElementById('transaction-description').value = txData.description || "";
+            document.getElementById('transaction-amount').value = Math.abs(txData.amount) || "";
+            document.getElementById('transaction-date').value = txData.date || new Date().toISOString().split('T')[0];
+            document.getElementById('transaction-category').value = txData.category || "Other";
+            if ((txData.amount || 0) < 0 || txData.type === 'expense') document.getElementById('type-expense').checked = true;
+            else document.getElementById('type-income').checked = true;
+            if (txData.classification === 'business') document.getElementById('class-business').checked = true;
+            else document.getElementById('class-personal').checked = true;
+        }
+        
+        function getSelectedPendingIds() {
+            return Array.from(pendingTransactionsListEl.querySelectorAll('.pending-checkbox:checked')).map(cb => cb.dataset.id);
+        }
+        
+        function toggleBulkEditButton() {
+            const selectedCount = getSelectedPendingIds().length;
+            bulkEditBtn.classList.toggle('hidden', selectedCount === 0);
+        }
+
+        function copyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            Object.assign(textArea.style, { top:0, left:0, width:'2em', height:'2em', padding:0, border:'none', outline:'none', boxShadow:'none', background:'transparent'});
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            let successful = false;
+            try { successful = document.execCommand('copy'); } 
+            catch (err) { console.error("Copy failed: ", err); }
+            document.body.removeChild(textArea);
+            return successful;
+        }
+
+        async function handleSaveAccount(e) {
+            e.preventDefault();
+            const accountData = { name: document.getElementById('account-name').value, type: document.getElementById('account-type').value, balanceBrl: parseFloat(document.getElementById('account-balance-brl').value) || 0 };
+            if (!accountData.name) { showMessage('Account name is required.', 'error'); return; }
+            try {
+                const accountId = document.getElementById('account-id').value;
+                const docRef = doc(db, `artifacts/${appId}/users/${userId}/accounts`, accountId || new Date().toISOString());
+                await setDoc(docRef, accountData, { merge: true });
+                showMessage('Account saved successfully!', 'success');
+                closeModal(accountModal);
+                accountForm.reset();
+            } catch (error) { console.error("Error saving account:", error); showMessage('Failed to save account.', 'error'); }
+        }
+
+        async function saveTransaction(closeOnFinish) {
+            const transactionId = document.getElementById('transaction-id').value;
+            const pendingTxIdsJson = document.getElementById('pending-tx-ids').value;
+            
+            try {
+                let success = false;
+                if (pendingTxIdsJson) { // Handle Bulk or Single Pending
+                    success = await savePendingTransactions(pendingTxIdsJson);
+                } else if (transactionId) { // Handle Edit
+                    success = await saveSingleTransaction(true);
+                } else { // Handle New from scratch
+                    success = await saveSingleTransaction(false);
+                }
+
+                if (success) {
+                    if (closeOnFinish) closeModal(transactionModal);
+                    resetTransactionForm();
+                }
+            } catch (error) {
+                console.error("Error processing transaction:", error);
+                showMessage(error.message || 'An unexpected error occurred.', 'error');
+            }
+        }
+        
+        async function savePendingTransactions(idsJson) {
+            const ids = JSON.parse(idsJson);
+            const isBulk = Array.isArray(ids);
+            const targetIds = isBulk ? ids : [ids];
+            const accountId = document.getElementById('transaction-account').value;
+
+            if (!accountId) {
+                showMessage('Please select an account.', 'error');
+                return false;
+            }
+
+            await runTransaction(db, async (transaction) => {
+                let totalBalanceChange = 0;
+                const accountRef = doc(db, `artifacts/${appId}/users/${userId}/accounts`, accountId);
+                const accountDoc = await transaction.get(accountRef);
+                if (!accountDoc.exists()) throw new Error("Account not found.");
+
+                for (const tempId of targetIds) {
+                    const pendingTx = pendingTransactions.find(t => t.tempId === tempId);
+                    if (!pendingTx) continue;
+
+                    const newAmount = isBulk ? pendingTx.amount : (parseFloat(document.getElementById('transaction-amount').value) || 0);
+                    const transactionType = document.querySelector('input[name="transaction-type"]:checked').value;
+                    const finalAmount = transactionType === 'expense' ? -Math.abs(newAmount) : Math.abs(newAmount);
+
+                    const newTxData = {
+                        amount: finalAmount,
+                        description: isBulk ? pendingTx.description : document.getElementById('transaction-description').value,
+                        accountId: accountId,
+                        date: document.getElementById('transaction-date').value,
+                        category: document.getElementById('transaction-category').value,
+                        type: transactionType,
+                        classification: document.querySelector('input[name="transaction-classification"]:checked').value,
+                        createdAt: serverTimestamp()
+                    };
+
+                    const newTxRef = doc(collection(db, `artifacts/${appId}/users/${userId}/transactions`));
+                    transaction.set(newTxRef, newTxData);
+                    totalBalanceChange += finalAmount;
+                }
+
+                const newBalance = (accountDoc.data().balanceBrl || 0) + totalBalanceChange;
+                transaction.update(accountRef, { balanceBrl: newBalance });
+            });
+            
+            pendingTransactions = pendingTransactions.filter(tx => !targetIds.includes(tx.tempId));
+            renderPendingTransactions();
+            toggleBulkEditButton();
+            showMessage(`${targetIds.length} transaction(s) approved!`, 'success');
+            return true;
+        }
+        
+        async function saveSingleTransaction(isEdit) {
+            const transactionId = document.getElementById('transaction-id').value;
+            const selectedAccountId = document.getElementById('transaction-account').value;
+            if (!selectedAccountId) {
+                showMessage('Please select an account.', 'error');
+                return false;
+            }
+            let newAmount = parseFloat(document.getElementById('transaction-amount').value) || 0;
+            const transactionType = document.querySelector('input[name="transaction-type"]:checked').value;
+            newAmount = transactionType === 'expense' ? -Math.abs(newAmount) : Math.abs(newAmount);
+            const transactionData = { description: document.getElementById('transaction-description').value, amount: newAmount, accountId: selectedAccountId, category: document.getElementById('transaction-category').value, date: document.getElementById('transaction-date').value, type: transactionType, classification: document.querySelector('input[name="transaction-classification"]:checked').value };
+            if (!transactionData.description || !transactionData.date) { 
+                showMessage('Description and date are required.', 'error');
+                return false;
+            }
+            if (transactionData.amount === 0) {
+                 showMessage('Amount cannot be zero.', 'error');
+                 return false;
+            }
+
+            await runTransaction(db, async (transaction) => {
+                if (isEdit) {
+                    const originalAmount = parseFloat(document.getElementById('original-tx-amount').value);
+                    const originalAccountId = document.getElementById('original-tx-account-id').value;
+                    const txDocRef = doc(db, `artifacts/${appId}/users/${userId}/transactions`, transactionId);
+
+                    // --- All READS first ---
+                    const originalAccountRef = doc(db, `artifacts/${appId}/users/${userId}/accounts`, originalAccountId);
+                    const newAccountRef = doc(db, `artifacts/${appId}/users/${userId}/accounts`, selectedAccountId);
+                    
+                    const originalAccountDoc = await transaction.get(originalAccountRef);
+                    const newAccountDoc = (originalAccountId === selectedAccountId) ? originalAccountDoc : await transaction.get(newAccountRef);
+                    
+                    if (!originalAccountDoc.exists()) throw new Error("Original account not found.");
+                    if (!newAccountDoc.exists()) throw new Error("New account not found.");
+
+                    // --- All WRITES second ---
+                    if (originalAccountId === selectedAccountId) {
+                        const difference = newAmount - originalAmount;
+                        transaction.update(originalAccountRef, { balanceBrl: originalAccountDoc.data().balanceBrl + difference });
+                    } else {
+                        transaction.update(originalAccountRef, { balanceBrl: originalAccountDoc.data().balanceBrl - originalAmount });
+                        transaction.update(newAccountRef, { balanceBrl: newAccountDoc.data().balanceBrl + newAmount });
+                    }
+                    transaction.set(txDocRef, transactionData, { merge: true });
+
+                } else { // New transaction
+                    transactionData.createdAt = serverTimestamp();
+                    const newTxRef = doc(collection(db, `artifacts/${appId}/users/${userId}/transactions`));
+                    const accountRef = doc(db, `artifacts/${appId}/users/${userId}/accounts`, selectedAccountId);
+                    const accountDoc = await transaction.get(accountRef);
+                    if (!accountDoc.exists()) throw new Error("Account not found.");
+                    transaction.update(accountRef, { balanceBrl: (accountDoc.data().balanceBrl || 0) + newAmount });
+                    transaction.set(newTxRef, transactionData);
+                }
+            });
+            showMessage(isEdit ? 'Transaction updated!' : 'Transaction added!', 'success');
+            return true;
+        }
+
+        async function handleSaveTransfer(e) {
+            e.preventDefault();
+            const fromAccountId = document.getElementById('transfer-from-account').value;
+            const toAccountId = document.getElementById('transfer-to-account').value;
+            const amount = parseFloat(document.getElementById('transfer-amount').value) || 0;
+            
+            if (!fromAccountId || !toAccountId) { showMessage('Please select both accounts.', 'error'); return; }
+            if (fromAccountId === toAccountId) { showMessage('Cannot transfer to the same account.', 'error'); return; }
+            if (amount <= 0) { showMessage('Transfer amount must be positive.', 'error'); return; }
+
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const fromRef = doc(db, `artifacts/${appId}/users/${userId}/accounts`, fromAccountId);
+                    const toRef = doc(db, `artifacts/${appId}/users/${userId}/accounts`, toAccountId);
+                    
+                    const fromDoc = await transaction.get(fromRef);
+                    const toDoc = await transaction.get(toRef);
+
+                    if (!fromDoc.exists() || !toDoc.exists()) {
+                        throw new Error("One or both accounts not found.");
+                    }
+
+                    const fromNewBalance = (fromDoc.data().balanceBrl || 0) - amount;
+                    const toNewBalance = (toDoc.data().balanceBrl || 0) + amount;
+
+                    transaction.update(fromRef, { balanceBrl: fromNewBalance });
+                    transaction.update(toRef, { balanceBrl: toNewBalance });
+                });
+                showMessage('Transfer successful!', 'success');
+                closeModal(transferModal);
+            } catch(error) {
+                console.error("Error transferring funds:", error);
+                showMessage('Failed to transfer funds: ' + error.message, 'error');
+            }
+        }
+        
+        function confirmDelete(id, type, ownerId) {
+             if (ownerId && ownerId !== userId) {
+                showMessage("You can only delete your own items.", 'error');
+                return;
+            }
+            const messageEl = document.getElementById('delete-confirmation-message');
+            messageEl.innerHTML = `<span class="lang-en">Are you sure you want to delete this ${type}? This action cannot be undone.</span><span class="lang-pt">Tem certeza que deseja excluir este ${type}? Esta ação não pode ser desfeita.</span>`
+            openModal(deleteConfirmationModal);
+            confirmDeleteBtn.dataset.id = id; 
+            confirmDeleteBtn.dataset.type = type;
+            updateLanguageDisplay();
+        }
+
+        async function handleDelete() {
+            const id = confirmDeleteBtn.dataset.id;
+            const type = confirmDeleteBtn.dataset.type;
+
+            if (type === 'transaction') await handleDeleteTransaction(id);
+            if (type === 'goal') await handleDeleteGoal(id);
+        }
+
+        async function handleDeleteTransaction(transactionId) {
+            const txToDelete = myTransactions.find(tx => tx.id === transactionId);
+            if (!txToDelete) {
+                showMessage('Transaction not found.', 'error');
+                closeModal(deleteConfirmationModal);
+                return;
+            }
+
+            const accountRef = doc(db, `artifacts/${appId}/users/${userId}/accounts`, txToDelete.accountId);
+            const transactionRef = doc(db, `artifacts/${appId}/users/${userId}/transactions`, transactionId);
+            
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const accountDoc = await transaction.get(accountRef);
+                    if (!accountDoc.exists()) throw new Error("Associated account not found.");
+                    
+                    // Reverse the transaction amount from the account balance
+                    const newBalance = (accountDoc.data().balanceBrl || 0) - txToDelete.amount;
+                    transaction.update(accountRef, { balanceBrl: newBalance });
+                    transaction.delete(transactionRef);
+                });
+                showMessage('Transaction deleted successfully!', 'success');
+            } catch (error) {
+                console.error("Error deleting transaction:", error);
+                showMessage("Failed to delete transaction: " + error.message, 'error');
+            } finally {
+                closeModal(deleteConfirmationModal);
+            }
+        }
+        
+        async function handleDeleteGoal(goalId) {
+             const goalsPath = isSynced 
+                ? `artifacts/${appId}/public/data/savingsGoals` 
+                : `artifacts/${appId}/users/${userId}/savingsGoals`;
+            
+            try {
+                 await deleteDoc(doc(db, goalsPath, goalId));
+                 showMessage('Savings goal deleted!', 'success');
+            } catch(e) {
+                console.error("Error deleting goal", e);
+                showMessage('Failed to delete goal.', 'error');
+            } finally {
+                closeModal(deleteConfirmationModal);
+            }
+        }
+
+
+        async function handleSyncPartner(e) {
+            e.preventDefault();
+            const partnerIdToSync = document.getElementById('partner-id').value.trim();
+            if (!partnerIdToSync || partnerIdToSync === userId) { 
+                showMessage('Please enter a valid Partner User ID.', 'error'); 
+                return; 
+            }
+            
+            const syncRequestRef = doc(db, `artifacts/${appId}/public/data/syncRequests`, `${userId}_${partnerIdToSync}`);
+            
+            try {
+                await setDoc(syncRequestRef, { from: userId, to: partnerIdToSync, status: 'pending', createdAt: serverTimestamp() });
+                showMessage('Sync request sent!', 'success');
+                closeModal(syncModal);
+            } catch (error) {
+                console.error("Error sending sync request:", error);
+                showMessage("Failed to send sync request. Please try again.", 'error');
+            }
+        }
+        
+        async function acceptSyncRequest(fromUserId, requestId) {
+            const syncDocId = [userId, fromUserId].sort().join('_');
+            const syncData = { users: [userId, fromUserId], createdAt: serverTimestamp() };
+            
+            const syncRef = doc(db, `artifacts/${appId}/public/data/syncs`, syncDocId);
+            const requestRef = doc(db, `artifacts/${appId}/public/data/syncRequests`, requestId);
+
+            try {
+                const batch = writeBatch(db);
+                batch.set(syncRef, syncData);
+                batch.delete(requestRef);
+                await batch.commit();
+                showMessage('Accounts synced successfully!', 'success');
+            } catch (error) {
+                console.error("Error accepting sync request:", error);
+                showMessage("Failed to sync accounts.", 'error');
+            }
+        }
+
+        async function declineSyncRequest(requestId) {
+            const requestRef = doc(db, `artifacts/${appId}/public/data/syncRequests`, requestId);
+            try {
+                await deleteDoc(requestRef);
+                showMessage('Sync request declined.', 'success');
+            } catch(error) {
+                console.error("Error declining sync request:", error);
+                showMessage("Failed to decline request.", 'error');
+            }
+        }
+
+
+        async function handleUnsync() {
+            if(!partnerId) return;
+             try {
+                const syncDocId = [userId, partnerId].sort().join('_');
+                await deleteDoc(doc(db, `artifacts/${appId}/public/data/syncs`, syncDocId));
+                showMessage('Successfully un-synced from partner.', 'success');
+            } catch (error) {
+                 console.error("Error un-syncing from partner:", error);
+                 showMessage('Failed to un-sync. Please try again.', 'error');
+            }
+        }
+
+        function handleImport(event) {
+            event.preventDefault();
+            const importAccount = document.getElementById('import-account-select').value;
+            const fileInput = document.getElementById('import-file-input');
+            if (!importAccount) { showMessage('Please select an account to import to.', 'error'); return; }
+            if (fileInput.files.length === 0) { showMessage('Please select a CSV file.', 'error'); return; }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target.result;
+                const lines = text.split(/\r\n|\n/).slice(1);
+                const imported = lines.map(line => {
+                    const data = line.split(',');
+                    const amount = parseFloat(data[2]?.replace(/["R$ ]/g, '').replace(',', '.')) || 0;
+                    return { tempId: crypto.randomUUID(), date: data[0]?.replace(/"/g, '') || '', description: data[1]?.replace(/"/g, '') || 'Imported Transaction', amount: amount, accountId: importAccount };
+                }).filter(tx => tx.amount !== 0 && tx.date);
+                if (imported.length > 0) {
+                    pendingTransactions.push(...imported);
+                    renderPendingTransactions();
+                    showMessage(`${imported.length} transactions imported for review.`, 'success');
+                } else { showMessage('No valid transactions found in the file.', 'warning'); }
+                closeModal(importOptionsModal);
+                importForm.reset();
+            };
+            reader.onerror = () => { showMessage('Failed to read file.', 'error'); importForm.reset(); };
+            reader.readAsText(file);
+        }
+
+        function handleExport(e) {
+            e.preventDefault();
+            const startDate = document.getElementById('export-start-date').value;
+            const endDate = document.getElementById('export-end-date').value;
+            
+            const transactionsToExport = [...myTransactions, ...partnerTransactions].filter(tx => {
+                if (startDate && tx.date < startDate) return false;
+                if (endDate && tx.date > endDate) return false;
+                return true;
+            });
+
+            if (transactionsToExport.length === 0) { showMessage('No transactions to export in the selected range.', 'error'); return; }
+            
+            let csvContent = "data:text/csv;charset=utf-8,Date,Description,Amount,Category,Type,Classification,Account Name,Owner\n";
+            transactionsToExport.forEach(tx => {
+                const allAccounts = [...myAccounts, ...partnerAccounts];
+                const account = allAccounts.find(a => a.id === tx.accountId);
+                const owner = tx.owner === userId ? 'Me' : 'Partner';
+                const row = [tx.date, `"${tx.description}"`, tx.amount, tx.category, tx.type, tx.classification, `"${account ? account.name : 'N/A'}"`, owner].join(',');
+                csvContent += row + "\r\n";
+            });
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", `budget_export_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            closeModal(exportOptionsModal);
+        }
+
+        function handleFilter(e) {
+            e.preventDefault();
+            transactionFilters = {
+                category: document.getElementById('filter-category').value,
+                account: document.getElementById('filter-account').value,
+                type: document.getElementById('filter-type').value,
+                startDate: document.getElementById('filter-start-date').value,
+                endDate: document.getElementById('filter-end-date').value
+            };
+            renderTransactions([...myTransactions, ...partnerTransactions]);
+            closeModal(filterModal);
+        }
+        
+        function renderReports(allTransactionsData = []) {
+            const selectedMonth = reportMonthSelect.value;
+            const selectedYear = reportYearSelect.value;
+
+            const filteredTransactions = allTransactionsData.filter(tx => {
+                const txDate = new Date(tx.date + 'T00:00:00'); // Ensure date is parsed correctly
+                const txYear = txDate.getFullYear();
+                const txMonth = txDate.getMonth(); // 0-11
+                
+                if (selectedYear !== 'all' && txYear !== parseInt(selectedYear)) {
+                    return false;
+                }
+                if (selectedMonth !== 'all' && txMonth !== parseInt(selectedMonth)) {
+                    return false;
+                }
+                return true;
+            });
+
+            const { totalIncome, totalExpenses, incomeByCategory, expensesByCategory } = calculateReportData(filteredTransactions);
+            
+            renderSummaryChart(totalIncome, totalExpenses);
+            renderDetailedReport(incomeByCategory, expensesByCategory);
+        }
+
+        function calculateReportData(data) {
+            const report = { totalIncome: 0, totalExpenses: 0, incomeByCategory: {}, expensesByCategory: {} };
+            data.forEach(tx => {
+                const amount = parseFloat(tx.amount) || 0;
+                if(tx.type === 'income') {
+                    report.totalIncome += amount;
+                    report.incomeByCategory[tx.category] = (report.incomeByCategory[tx.category] || 0) + amount;
+                } else {
+                    report.totalExpenses += amount;
+                    report.expensesByCategory[tx.category] = (report.expensesByCategory[tx.category] || 0) + amount;
+                }
+            });
+            return report;
+        }
+
+        function renderSummaryChart(totalIncome, totalExpenses) {
+            const ctx = document.getElementById('income-expense-chart').getContext('2d');
+            if (summaryChart) summaryChart.destroy();
+            const surplus = totalIncome - Math.abs(totalExpenses);
+            
+            const labels = ['Income', 'Expenses'];
+            const dataValues = [totalIncome, Math.abs(totalExpenses)];
+            const colors = ['#22c55e', '#ef4444'];
+            
+            if (surplus > 0) {
+                 labels.push('Surplus');
+                 dataValues.push(surplus);
+                 colors.push('#a855f7');
+                 // Adjust income to show it's made of expenses + surplus
+                 dataValues[0] = totalExpenses;
+            }
+
+            const data = { labels: labels, datasets: [{ label: 'Budget Summary', data: dataValues, backgroundColor: colors, hoverOffset: 4 }] };
+            if (totalIncome === 0 && totalExpenses === 0) { data.labels = ['No Data']; data.datasets[0].data = [1]; data.datasets[0].backgroundColor = ['#e5e7eb']; }
+            summaryChart = new Chart(ctx, { type: 'doughnut', data: data, options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.label}: R$${c.parsed.toFixed(2)}` } } } } });
+        }
+        
+        function renderDetailedReport(incomeData, expenseData) {
+            renderCategoryChart('income-breakdown-chart', incomeChart, incomeData, (chart) => incomeChart = chart);
+            renderCategoryChart('expense-breakdown-chart', expenseChart, expenseData, (chart) => expenseChart = chart);
+
+            const incomeListEl = document.getElementById('income-breakdown-list');
+            const expenseListEl = document.getElementById('expense-breakdown-list');
+            incomeListEl.innerHTML = '';
+            expenseListEl.innerHTML = '';
+            
+            Object.entries(incomeData).sort(([,a],[,b]) => b-a).forEach(([category, amount]) => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center text-sm p-2 rounded-md hover:bg-gray-50';
+                li.innerHTML = `<span>${categoryEmojis[category] || '❓'} ${category}</span><span class="font-medium text-green-600">R$${amount.toFixed(2)}</span>`;
+                incomeListEl.appendChild(li);
+            });
+             if (Object.keys(incomeData).length === 0) incomeListEl.innerHTML = `<li class="text-sm text-gray-400 text-center">No income recorded.</li>`;
+
+            Object.entries(expenseData).sort(([,a],[,b]) => a-b).forEach(([category, amount]) => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center text-sm p-2 rounded-md hover:bg-gray-50';
+                li.innerHTML = `<span>${categoryEmojis[category] || '❓'} ${category}</span><span class="font-medium text-red-600">R$${Math.abs(amount).toFixed(2)}</span>`;
+                expenseListEl.appendChild(li);
+            });
+            if (Object.keys(expenseData).length === 0) expenseListEl.innerHTML = `<li class="text-sm text-gray-400 text-center">No expenses recorded.</li>`;
+        }
+
+        function renderCategoryChart(canvasId, chartInstance, categoryData, setChartInstance) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            
+            const labels = Object.keys(categoryData);
+            const dataValues = Object.values(categoryData).map(v => Math.abs(v));
+
+            const data = {
+                labels: labels,
+                datasets: [{
+                    data: dataValues,
+                    backgroundColor: chartColorPalette,
+                    hoverOffset: 4
+                }]
+            };
+
+            if (labels.length === 0) {
+                 data.labels = ['No Data'];
+                 data.datasets[0].data = [1];
+                 data.datasets[0].backgroundColor = ['#e5e7eb'];
+            }
+            
+            const newChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: data,
+                options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.label}: R$${c.parsed.toFixed(2)}` } } } }
+            });
+            setChartInstance(newChart);
+        }
+        
+        async function getCategoryFromAI() {
+            const description = document.getElementById('transaction-description').value.trim();
+            if (!description) return;
+            
+            const categoryList = Object.keys(categoryEmojis).join(', ');
+            const prompt = `Given the transaction description "${description}", which of the following categories does it best fit into? [${categoryList}]. Respond with ONLY the category name from the list, e.g., "Shopping" or "Transport".`;
+            
+            try {
+                const apiHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: apiHistory };
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) return;
+                const result = await response.json();
+                if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
+                    const category = result.candidates[0].content.parts[0].text.trim();
+                    if(categoryEmojis[category]) {
+                        document.getElementById('transaction-category').value = category;
+                    }
+                }
+            } catch(error) {
+                console.error("AI Category suggestion failed:", error);
+            }
+        }
+        
+        function renderAIChat() {
+            if (aiChatBox) {
+                aiChatBox.innerHTML = '';
+                aiChatHistory.forEach(msg => appendMessageToAIChat(msg.parts[0].text, msg.role === 'model' ? 'ai' : 'user', false)); // Don't save again
+            }
+        }
+
+        async function clearAIChatHistory() {
+            const docId = isSynced ? [userId, partnerId].sort().join('_') : 'chat';
+            const path = isSynced 
+                ? `artifacts/${appId}/public/data/aiChatHistory/${docId}` 
+                : `artifacts/${appId}/users/${userId}/aiChatHistory/chat`;
+            await deleteDoc(doc(db, path)); 
+            aiChatHistory = [];
+            renderAIChat();
+            showMessage('Chat history cleared.', 'success');
+        }
+
+        // --- UI Helpers ---
+        function populateDateFilters() {
+            const months = currentLang === 'pt'
+                ? ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+                : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+            const currentMonth = reportMonthSelect.value || new Date().getMonth();
+            reportMonthSelect.innerHTML = `<option value="all">${currentLang === 'pt' ? 'Todo o Ano' : 'All Year'}</option>`;
+            months.forEach((month, index) => {
+                reportMonthSelect.innerHTML += `<option value="${index}">${month}</option>`;
+            });
+            reportMonthSelect.value = currentMonth;
+        }
+
+        function populateYearFilter(allTransactionsData = []) {
+            const years = new Set(allTransactionsData.map(tx => new Date(tx.date + 'T00:00:00').getFullYear()));
+            const currentYear = new Date().getFullYear();
+            years.add(currentYear);
+            
+            const sortedYears = Array.from(years).sort((a, b) => b - a);
+
+            const currentYearSelection = reportYearSelect.value;
+            reportYearSelect.innerHTML = '<option value="all">All Time</option>';
+            sortedYears.forEach(year => {
+                 reportYearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+            });
+            reportYearSelect.value = currentYearSelection || currentYear;
+        }
+
+        function resetTransactionForm() {
+            transactionForm.reset();
+            setModalTitle('add');
+            ['transaction-id', 'pending-tx-ids', 'original-tx-amount', 'original-tx-account-id'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('transaction-date').valueAsDate = new Date();
+            document.getElementById('type-expense').checked = true;
+            document.getElementById('class-personal').checked = true;
+            document.getElementById('amount-field-container').classList.remove('hidden');
+            document.getElementById('description-field-container').classList.remove('hidden');
+        }
+
+        function resetAccountForm() {
+            accountForm.reset();
+            document.getElementById('account-id').value = '';
+        }
+        
+        function setModalTitle(mode) { // 'add', 'edit', 'review', 'bulk-edit'
+            document.querySelectorAll('#transaction-modal h3 > span').forEach(el => el.classList.add('hidden'));
+            document.querySelector(`#transaction-modal .title-${mode}`).classList.remove('hidden');
+        }
+
+        function updateLanguageDisplay() { htmlEl.lang = currentLang; }
+        function openModal(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+        function closeModal(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        function showMessage(message, type = 'success') {
+            messageContent.textContent = message;
+            messageContent.className = 'p-4 rounded-lg shadow-lg text-white font-semibold';
+            if (type === 'success') messageContent.classList.add('bg-green-500');
+            else if (type === 'warning') messageContent.classList.add('bg-amber-500');
+            else messageContent.classList.add('bg-red-500');
+            messageModal.classList.remove('hidden');
+            setTimeout(() => { messageModal.classList.add('hidden'); }, 3000);
+        }
+        
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else { // system
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            applyTheme(savedTheme);
+            // Listen for changes in system preference
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                if(localStorage.getItem('theme') === 'system') {
+                    applyTheme('system');
+                }
+            });
+        }
+        
+        async function handleSaveSavingsGoal(e) {
+            e.preventDefault();
+            const goalId = document.getElementById('savings-goal-id').value;
+            const goalData = {
+                name: document.getElementById('savings-goal-name').value,
+                targetAmount: parseFloat(document.getElementById('savings-goal-amount').value) || 0
+            };
+            if(!goalData.name || !goalData.targetAmount) {
+                showMessage("Please fill out all goal fields.", "error");
+                return;
+            }
+            await handleMakeActionPlan(goalData, goalId);
+            closeModal(savingsGoalModal);
+        }
+        
+        async function handleMakeActionPlan(planData, goalIdToUpdate = null) {
+            const goalsPath = isSynced 
+                ? `artifacts/${appId}/public/data/savingsGoals` 
+                : `artifacts/${appId}/users/${userId}/savingsGoals`;
+            
+            const goalRef = goalIdToUpdate 
+                ? doc(db, goalsPath, goalIdToUpdate)
+                : doc(collection(db, goalsPath));
+
+            await setDoc(goalRef, planData, { merge: true });
+            showMessage(`Goal "${planData.name}" has been ${goalIdToUpdate ? 'updated' : 'set'}!`, 'success');
+            closeModal(aiAssistantModal);
+        }
+        
+        async function handleAIPrompt(e) {
+            e.preventDefault();
+            const promptInput = document.getElementById('ai-prompt-input');
+            const prompt = promptInput.value.trim();
+            if(!prompt) return;
+
+            appendMessageToAIChat(prompt, 'user');
+            promptInput.value = '';
+            aiThinkingIndicator.classList.remove('hidden');
+            
+            const allTransactions = [...myTransactions, ...partnerTransactions];
+            const netWorth = [...myAccounts, ...partnerAccounts]
+                .reduce((sum, acc) => sum + (acc.type === 'Credit Card' ? -acc.balanceBrl : acc.balanceBrl), 0);
+            
+            const contextPrompt = `
+                You are a helpful and friendly financial assistant for the Blacksher Family.
+                Analyze the following financial data and answer the user's question based on the provided chat history.
+                Be friendly and encouraging, but also direct about what is financially realistic. Offer multiple scenarios if possible (e.g., an aggressive plan and a more relaxed plan).
+                
+                Current Household Net Worth: R$ ${netWorth.toFixed(2)}
+                
+                Transactions (last 90 days):
+                ${allTransactions.slice(0, 50).map(t => `${t.date}: ${t.description} (R$ ${t.amount})`).join('\n')}
+                
+                Existing Savings Goals:
+                ${savingsGoals.map(g => `- ID ${g.id}: ${g.name} for R$${g.targetAmount}`).join('\n') || 'None'}
+            `;
+            
+            try {
+                 const apiHistory = [
+                    { role: "user", parts: [{ text: contextPrompt }] },
+                    { role: "model", parts: [{ text: "Ok, I have the financial context. I am ready for the user's question."}] },
+                    ...aiChatHistory,
+                    { role: "user", parts: [{text: prompt}]}
+                ];
+
+                const payload = { contents: apiHistory };
+                const apiKey = ""; // API key is handled by the environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`API call failed with status: ${response.status}`);
+                
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    // Add ONLY the AI's response to the history and UI
+                    appendMessageToAIChat(text, 'ai');
+                } else {
+                   throw new Error("Unexpected API response structure.");
+                }
+            } catch(error) {
+                console.error("AI Assistant Error:", error);
+                appendMessageToAIChat("Sorry, I couldn't process that right now. Please try again.", 'ai');
+            } finally {
+                 aiThinkingIndicator.classList.add('hidden');
+            }
+        }
+        
+        function appendMessageToAIChat(message, sender, shouldSave = true) {
+             const messageEl = document.createElement('div');
+             let formattedMessage = message
+                .replace(/```json([\s\S]*?)```/gs, (match, jsonString) => {
+                    try {
+                        const planData = JSON.parse(jsonString);
+                        if (planData.isSavingsPlan) {
+                            return `<div class="bg-blue-100 dark:bg-blue-900 p-3 rounded-lg mt-2">
+                                        <p class="font-bold">Savings Plan: ${planData.plan.name}</p>
+                                        <p>Goal: R$${planData.plan.targetAmount.toLocaleString('pt-BR')}</p>
+                                        <p>Deadline: ${planData.plan.deadlineYears} years</p>
+                                        <button class="make-action-plan-btn mt-2 bg-green-500 text-white font-bold py-1 px-3 rounded-lg" data-plan='${JSON.stringify(planData.plan)}'>Make this an Action Plan</button>
+                                    </div>`;
+                        } else if (planData.isPlanUpdate) {
+                             return `<div class="bg-yellow-100 dark:bg-yellow-900 p-3 rounded-lg mt-2">
+                                        <p class="font-bold">Update Plan: ${planData.plan.name}</p>
+                                        <p>New Goal: R$${planData.plan.targetAmount.toLocaleString('pt-BR')}</p>
+                                        <button class="update-action-plan-btn mt-2 bg-yellow-500 text-white font-bold py-1 px-3 rounded-lg" data-plan='${JSON.stringify(planData.plan)}'>Update this Goal</button>
+                                    </div>`;
+                        }
+                        return ''; // Hide block if it's not a plan we recognize
+                    } catch(e) { console.error("AI JSON parse error", e); return "" }
+                });
+
+            if(sender === 'user') {
+                messageEl.className = 'text-right';
+                messageEl.innerHTML = `<div class="bg-blue-500 text-white inline-block rounded-lg px-4 py-2 max-w-sm">${formattedMessage}</div>`;
+            } else {
+                 messageEl.className = 'text-left';
+                 messageEl.innerHTML = `<div class="bg-gray-200 dark:bg-gray-700 inline-block rounded-lg px-4 py-2 max-w-sm">${formattedMessage}</div>`;
+            }
+            aiChatBox.appendChild(messageEl);
+            aiChatBox.scrollTop = aiChatBox.scrollHeight;
+            if(shouldSave) {
+                aiChatHistory.push({ role: sender === 'user' ? 'user' : 'model', parts: [{ text: message }] });
+                saveAIChatHistory();
+            }
+        }
+        
+        async function openAIAssistantForGoal(goalId) {
+            const goal = savingsGoals.find(g => g.id === goalId);
+            if(!goal) return;
+            const prompt = `Let's talk about my goal: "${goal.name}" for R$${goal.targetAmount}. Can I reach this faster?`;
+            document.getElementById('ai-prompt-input').value = prompt;
+            openModal(aiAssistantModal);
+        }
+
+        async function saveAIChatHistory() {
+             const docId = isSynced ? [userId, partnerId].sort().join('_') : 'chat';
+             const path = isSynced 
+                ? `artifacts/${appId}/public/data/aiChatHistory/${docId}` 
+                : `artifacts/${appId}/users/${userId}/aiChatHistory/chat`;
+             await setDoc(doc(db, path), { messages: aiChatHistory });
+        }
+
+
+        // --- App Start ---
+        document.addEventListener('DOMContentLoaded', startApp);
+
+    </script>
+
+</body>
+</html>
