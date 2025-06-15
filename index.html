@@ -1153,7 +1153,20 @@ const appId = firebaseConfig.appId; // <-- ADD THIS LINE
             });
             transferFundsBtn.addEventListener('click', () => openModal(transferModal));
             aiAssistantBtn.addEventListener('click', () => openModal(aiAssistantModal));
-            document.getElementById('add-transaction-btn').addEventListener('click', () => { resetTransactionForm(); openModal(transactionModal); });
+            document.body.addEventListener('click', function(event) {
+    // --- Add New Transaction Button ---
+    if (event.target.closest('#add-transaction-btn')) {
+        resetTransactionForm();
+        openModal(transactionModal);
+    }
+    
+    // You can add more buttons here later! For example:
+    // --- Manage Accounts Button ---
+    // if (event.target.closest('#manage-accounts-btn')) {
+    //     resetAccountForm();
+    //     openModal(accountModal);
+    // }
+});
             syncPartnerBtn.addEventListener('click', () => openModal(syncModal));
             unsyncPartnerBtn.addEventListener('click', handleUnsync);
             syncForm.addEventListener('submit', handleSyncPartner);
