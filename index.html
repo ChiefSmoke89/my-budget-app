@@ -727,7 +727,7 @@
         import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, query, serverTimestamp, runTransaction, writeBatch, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Configuration ---
-        const firebaseConfig = {
+  const firebaseConfig = {
   apiKey: "AIzaSyB3sotw7olYhMDeDx_ZW0SXkvUGZgdcSKI",
   authDomain: "my-budget-app-3dd19.firebaseapp.com",
   projectId: "my-budget-app-3dd19",
@@ -736,6 +736,9 @@
   appId: "1:873429046182:web:bf16e29b2caa62402b3567",
   measurementId: "G-51RCMY3BNN"
 };
+
+const appId = firebaseConfig.appId; // <-- ADD THIS LINE
+
         // --- Global State ---
         let app, auth, db, userId, accountsUnsubscribe, transactionsUnsubscribe, syncUnsubscribe, partnerDataUnsubscribe, savingsGoalsUnsubscribe, aiChatUnsubscribe, syncRequestUnsubscribe;
         let myAccounts = [], partnerAccounts = [];
@@ -844,11 +847,13 @@
                     shortUserIdEl.textContent = userId.substring(0, 6);
                     loadData();
                 } else {
-                    try {
-                        if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
-                        else await signInAnonymously(auth);
-                    } catch (error) { console.error("Error signing in:", error); showMessage("Authentication failed.", 'error'); }
-                }
+                   try {
+    // We only need to sign in anonymously
+    await signInAnonymously(auth);
+} catch (error) {
+    console.error("Error signing in:", error);
+    showMessage("Authentication failed.", 'error');
+}
             });
         }
 
