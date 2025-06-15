@@ -727,7 +727,7 @@
         import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, query, serverTimestamp, runTransaction, writeBatch, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Configuration ---
- const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyB3sotw7olYhMDeDx_ZW0SXkvUGZgdcSKI",
   authDomain: "my-budget-app-3dd19.firebaseapp.com",
   projectId: "my-budget-app-3dd19",
@@ -736,11 +736,6 @@
   appId: "1:873429046182:web:bf16e29b2caa62402b3567",
   measurementId: "G-51RCMY3BNN"
 };
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
         // --- Global State ---
         let app, auth, db, userId, accountsUnsubscribe, transactionsUnsubscribe, syncUnsubscribe, partnerDataUnsubscribe, savingsGoalsUnsubscribe, aiChatUnsubscribe, syncRequestUnsubscribe;
         let myAccounts = [], partnerAccounts = [];
@@ -1880,143 +1875,7 @@ const analytics = getAnalytics(app);
                 console.error("AI Category suggestion failed:", error);
             }
         }
-        
-        function renderAIChat() {
-            if (aiChatBox) {
-                aiChatBox.innerHTML = '';
-                aiChatHistory.forEach(msg => appendMessageToAIChat(msg.parts[0].text, msg.role === 'model' ? 'ai' : 'user', false)); // Don't save again
-            }
-        }
 
-        async function clearAIChatHistory() {
-            const docId = isSynced ? [userId, partnerId].sort().join('_') : 'chat';
-            const path = isSynced 
-                ? `artifacts/${appId}/public/data/aiChatHistory/${docId}` 
-                : `artifacts/${appId}/users/${userId}/aiChatHistory/chat`;
-            await deleteDoc(doc(db, path)); 
-            aiChatHistory = [];
-            renderAIChat();
-            showMessage('Chat history cleared.', 'success');
-        }
-
-        // --- UI Helpers ---
-        function populateDateFilters() {
-            const months = currentLang === 'pt'
-                ? ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
-                : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-            const currentMonth = reportMonthSelect.value || new Date().getMonth();
-            reportMonthSelect.innerHTML = `<option value="all">${currentLang === 'pt' ? 'Todo o Ano' : 'All Year'}</option>`;
-            months.forEach((month, index) => {
-                reportMonthSelect.innerHTML += `<option value="${index}">${month}</option>`;
-            });
-            reportMonthSelect.value = currentMonth;
-        }
-
-        function populateYearFilter(allTransactionsData = []) {
-            const years = new Set(allTransactionsData.map(tx => new Date(tx.date + 'T00:00:00').getFullYear()));
-            const currentYear = new Date().getFullYear();
-            years.add(currentYear);
-            
-            const sortedYears = Array.from(years).sort((a, b) => b - a);
-
-            const currentYearSelection = reportYearSelect.value;
-            reportYearSelect.innerHTML = '<option value="all">All Time</option>';
-            sortedYears.forEach(year => {
-                 reportYearSelect.innerHTML += `<option value="${year}">${year}</option>`;
-            });
-            reportYearSelect.value = currentYearSelection || currentYear;
-        }
-
-        function resetTransactionForm() {
-            transactionForm.reset();
-            setModalTitle('add');
-            ['transaction-id', 'pending-tx-ids', 'original-tx-amount', 'original-tx-account-id'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('transaction-date').valueAsDate = new Date();
-            document.getElementById('type-expense').checked = true;
-            document.getElementById('class-personal').checked = true;
-            document.getElementById('amount-field-container').classList.remove('hidden');
-            document.getElementById('description-field-container').classList.remove('hidden');
-        }
-
-        function resetAccountForm() {
-            accountForm.reset();
-            document.getElementById('account-id').value = '';
-        }
-        
-        function setModalTitle(mode) { // 'add', 'edit', 'review', 'bulk-edit'
-            document.querySelectorAll('#transaction-modal h3 > span').forEach(el => el.classList.add('hidden'));
-            document.querySelector(`#transaction-modal .title-${mode}`).classList.remove('hidden');
-        }
-
-        function updateLanguageDisplay() { htmlEl.lang = currentLang; }
-        function openModal(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-        function closeModal(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
-        function showMessage(message, type = 'success') {
-            messageContent.textContent = message;
-            messageContent.className = 'p-4 rounded-lg shadow-lg text-white font-semibold';
-            if (type === 'success') messageContent.classList.add('bg-green-500');
-            else if (type === 'warning') messageContent.classList.add('bg-amber-500');
-            else messageContent.classList.add('bg-red-500');
-            messageModal.classList.remove('hidden');
-            setTimeout(() => { messageModal.classList.add('hidden'); }, 3000);
-        }
-        
-        function applyTheme(theme) {
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else if (theme === 'light') {
-                document.documentElement.classList.remove('dark');
-            } else { // system
-                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
-            }
-            localStorage.setItem('theme', theme);
-        }
-
-        function loadTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'system';
-            applyTheme(savedTheme);
-            // Listen for changes in system preference
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-                if(localStorage.getItem('theme') === 'system') {
-                    applyTheme('system');
-                }
-            });
-        }
-        
-        async function handleSaveSavingsGoal(e) {
-            e.preventDefault();
-            const goalId = document.getElementById('savings-goal-id').value;
-            const goalData = {
-                name: document.getElementById('savings-goal-name').value,
-                targetAmount: parseFloat(document.getElementById('savings-goal-amount').value) || 0
-            };
-            if(!goalData.name || !goalData.targetAmount) {
-                showMessage("Please fill out all goal fields.", "error");
-                return;
-            }
-            await handleMakeActionPlan(goalData, goalId);
-            closeModal(savingsGoalModal);
-        }
-        
-        async function handleMakeActionPlan(planData, goalIdToUpdate = null) {
-            const goalsPath = isSynced 
-                ? `artifacts/${appId}/public/data/savingsGoals` 
-                : `artifacts/${appId}/users/${userId}/savingsGoals`;
-            
-            const goalRef = goalIdToUpdate 
-                ? doc(db, goalsPath, goalIdToUpdate)
-                : doc(collection(db, goalsPath));
-
-            await setDoc(goalRef, planData, { merge: true });
-            showMessage(`Goal "${planData.name}" has been ${goalIdToUpdate ? 'updated' : 'set'}!`, 'success');
-            closeModal(aiAssistantModal);
-        }
-        
         async function handleAIPrompt(e) {
             e.preventDefault();
             const promptInput = document.getElementById('ai-prompt-input');
@@ -2121,12 +1980,52 @@ const analytics = getAnalytics(app);
             }
         }
         
-        async function openAIAssistantForGoal(goalId) {
+        function openAIAssistantForGoal(goalId) {
             const goal = savingsGoals.find(g => g.id === goalId);
             if(!goal) return;
             const prompt = `Let's talk about my goal: "${goal.name}" for R$${goal.targetAmount}. Can I reach this faster?`;
             document.getElementById('ai-prompt-input').value = prompt;
             openModal(aiAssistantModal);
+        }
+
+        async function handleMakeActionPlan(planData, goalIdToUpdate = null) {
+            const goalsPath = isSynced 
+                ? `artifacts/${appId}/public/data/savingsGoals` 
+                : `artifacts/${appId}/users/${userId}/savingsGoals`;
+            
+            const goalRef = goalIdToUpdate 
+                ? doc(db, goalsPath, goalIdToUpdate)
+                : doc(collection(db, goalsPath));
+
+            await setDoc(goalRef, planData, { merge: true });
+            showMessage(`Goal "${planData.name}" has been ${goalIdToUpdate ? 'updated' : 'set'}!`, 'success');
+            closeModal(aiAssistantModal);
+        }
+        
+        async function handleSaveSavingsGoal(e) {
+            e.preventDefault();
+            const goalId = document.getElementById('savings-goal-id').value;
+            const goalData = {
+                name: document.getElementById('savings-goal-name').value,
+                targetAmount: parseFloat(document.getElementById('savings-goal-amount').value) || 0
+            };
+            if(!goalData.name || !goalData.targetAmount) {
+                showMessage("Please fill out all goal fields.", "error");
+                return;
+            }
+            await handleMakeActionPlan(goalData, goalId);
+            closeModal(savingsGoalModal);
+        }
+        
+        async function clearAIChatHistory() {
+            const docId = isSynced ? [userId, partnerId].sort().join('_') : 'chat';
+            const path = isSynced 
+                ? `artifacts/${appId}/public/data/aiChatHistory/${docId}` 
+                : `artifacts/${appId}/users/${userId}/aiChatHistory/chat`;
+            await deleteDoc(doc(db, path)); 
+            aiChatHistory = [];
+            renderAIChat();
+            showMessage('Chat history cleared.', 'success');
         }
 
         async function saveAIChatHistory() {
@@ -2135,6 +2034,102 @@ const analytics = getAnalytics(app);
                 ? `artifacts/${appId}/public/data/aiChatHistory/${docId}` 
                 : `artifacts/${appId}/users/${userId}/aiChatHistory/chat`;
              await setDoc(doc(db, path), { messages: aiChatHistory });
+        }
+        
+        function renderAIChat() {
+            if (aiChatBox) {
+                aiChatBox.innerHTML = '';
+                aiChatHistory.forEach(msg => appendMessageToAIChat(msg.parts[0].text, msg.role === 'model' ? 'ai' : 'user', false)); // Don't save again
+            }
+        }
+
+        // --- UI Helpers ---
+        function populateDateFilters() {
+            const months = currentLang === 'pt'
+                ? ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+                : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+            const currentMonth = reportMonthSelect.value || new Date().getMonth();
+            reportMonthSelect.innerHTML = `<option value="all">${currentLang === 'pt' ? 'Todo o Ano' : 'All Year'}</option>`;
+            months.forEach((month, index) => {
+                reportMonthSelect.innerHTML += `<option value="${index}">${month}</option>`;
+            });
+            reportMonthSelect.value = currentMonth;
+        }
+
+        function populateYearFilter(allTransactionsData = []) {
+            const years = new Set(allTransactionsData.map(tx => new Date(tx.date + 'T00:00:00').getFullYear()));
+            const currentYear = new Date().getFullYear();
+            years.add(currentYear);
+            
+            const sortedYears = Array.from(years).sort((a, b) => b - a);
+
+            const currentYearSelection = reportYearSelect.value;
+            reportYearSelect.innerHTML = '<option value="all">All Time</option>';
+            sortedYears.forEach(year => {
+                 reportYearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+            });
+            reportYearSelect.value = currentYearSelection || currentYear;
+        }
+
+        function resetTransactionForm() {
+            transactionForm.reset();
+            setModalTitle('add');
+            ['transaction-id', 'pending-tx-ids', 'original-tx-amount', 'original-tx-account-id'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('transaction-date').valueAsDate = new Date();
+            document.getElementById('type-expense').checked = true;
+            document.getElementById('class-personal').checked = true;
+            document.getElementById('amount-field-container').classList.remove('hidden');
+            document.getElementById('description-field-container').classList.remove('hidden');
+        }
+
+        function resetAccountForm() {
+            accountForm.reset();
+            document.getElementById('account-id').value = '';
+        }
+        
+        function setModalTitle(mode) { // 'add', 'edit', 'review', 'bulk-edit'
+            document.querySelectorAll('#transaction-modal h3 > span').forEach(el => el.classList.add('hidden'));
+            document.querySelector(`#transaction-modal .title-${mode}`).classList.remove('hidden');
+        }
+
+        function updateLanguageDisplay() { htmlEl.lang = currentLang; }
+        function openModal(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+        function closeModal(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        function showMessage(message, type = 'success') {
+            messageContent.textContent = message;
+            messageContent.className = 'p-4 rounded-lg shadow-lg text-white font-semibold';
+            if (type === 'success') messageContent.classList.add('bg-green-500');
+            else if (type === 'warning') messageContent.classList.add('bg-amber-500');
+            else messageContent.classList.add('bg-red-500');
+            messageModal.classList.remove('hidden');
+            setTimeout(() => { messageModal.classList.add('hidden'); }, 3000);
+        }
+        
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else { // system
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            applyTheme(savedTheme);
+            // Listen for changes in system preference
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                if(localStorage.getItem('theme') === 'system') {
+                    applyTheme('system');
+                }
+            });
         }
 
 
