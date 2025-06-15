@@ -727,7 +727,7 @@
         import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, addDoc, query, serverTimestamp, runTransaction, writeBatch, deleteDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Configuration ---
-        const firebaseConfig = {
+ const firebaseConfig = {
   apiKey: "AIzaSyB3sotw7olYhMDeDx_ZW0SXkvUGZgdcSKI",
   authDomain: "my-budget-app-3dd19.firebaseapp.com",
   projectId: "my-budget-app-3dd19",
@@ -736,6 +736,10 @@
   appId: "1:873429046182:web:bf16e29b2caa62402b3567",
   measurementId: "G-51RCMY3BNN"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
         // --- Global State ---
         let app, auth, db, userId, accountsUnsubscribe, transactionsUnsubscribe, syncUnsubscribe, partnerDataUnsubscribe, savingsGoalsUnsubscribe, aiChatUnsubscribe, syncRequestUnsubscribe;
